@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "spigot-on-fabric",
+  "version": "${version}",
+  "name": "Spigot on Fabric",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/Gaming32/spigot-on-fabric"
+  },
+  "license": "MIT",
+  "icon": "assets/spigot-on-fabric/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.gaming32.spigotonfabric.SpigotOnFabric"
+    ]
+  },
+  "mixins": [
+    "spigot-on-fabric.mixins.json"
+  ],
+  "accessWidener": "spigot-on-fabric.accessWidener",
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}

@@ -1,0 +1,8 @@
+accessWidener	v2	named
+accessible	field	net/minecraft/server/MinecraftServer	resources	Lnet/minecraft/server/MinecraftServer$ReloadableResources;
+accessible	class	net/minecraft/server/MinecraftServer$ReloadableResources
+accessible	field	net/minecraft/server/DataPackResources	commands	Lnet/minecraft/commands/CommandDispatcher;
+mutable	field	net/minecraft/server/DataPackResources	commands	Lnet/minecraft/commands/CommandDispatcher;
+accessible	field	net/minecraft/commands/CommandDispatcher	dispatcher	Lcom/mojang/brigadier/CommandDispatcher;
+mutable	field	net/minecraft/commands/CommandDispatcher	dispatcher	Lcom/mojang/brigadier/CommandDispatcher;
+accessible	field	net/minecraft/server/players/PlayerList	players	Ljava/util/List;

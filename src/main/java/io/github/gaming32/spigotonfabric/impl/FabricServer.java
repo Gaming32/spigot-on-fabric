@@ -10,6 +10,8 @@ import io.github.gaming32.spigotonfabric.impl.command.BukkitCommandWrapper;
 import io.github.gaming32.spigotonfabric.impl.command.FabricCommandMap;
 import io.github.gaming32.spigotonfabric.impl.command.VanillaCommandWrapper;
 import io.github.gaming32.spigotonfabric.impl.help.SimpleHelpMap;
+import io.github.gaming32.spigotonfabric.impl.inventory.FabricItemFactory;
+import io.github.gaming32.spigotonfabric.impl.profile.FabricPlayerProfile;
 import io.github.gaming32.spigotonfabric.impl.util.Versioning;
 import io.github.gaming32.spigotonfabric.impl.util.permissions.FabricDefaultPermissions;
 import net.fabricmc.loader.api.FabricLoader;
@@ -34,6 +36,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.SpawnCategory;
@@ -92,6 +95,13 @@ import java.util.function.Consumer;
 public class FabricServer implements Server {
     public static final String NAME = "SpigotOnFabric";
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    static {
+        ConfigurationSerialization.registerClass(FabricOfflinePlayer.class);
+        ConfigurationSerialization.registerClass(FabricPlayerProfile.class);
+        //noinspection ResultOfMethodCallIgnored
+        FabricItemFactory.instance();
+    }
 
     private final String serverVersion = SpigotOnFabric.MOD.getMetadata().getVersion().getFriendlyString();
     private final String bukkitVersion = Versioning.getBukkitVersion();

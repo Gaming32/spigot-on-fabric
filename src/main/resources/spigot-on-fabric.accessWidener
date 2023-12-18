@@ -6,3 +6,4 @@ mutable	field	net/minecraft/server/DataPackResources	commands	Lnet/minecraft/com
 accessible	field	net/minecraft/commands/CommandDispatcher	dispatcher	Lcom/mojang/brigadier/CommandDispatcher;
 mutable	field	net/minecraft/commands/CommandDispatcher	dispatcher	Lcom/mojang/brigadier/CommandDispatcher;
 accessible	field	net/minecraft/server/players/PlayerList	players	Ljava/util/List;
+accessible	field	net/minecraft/server/MinecraftServer	playerDataStorage	Lnet/minecraft/world/level/storage/WorldNBTStorage;

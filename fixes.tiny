@@ -2,3 +2,4 @@ tiny	2	0	intermediary	named
 c	net/minecraft/class_3542$1	net/minecraft/util/INamable$1
 c	net/minecraft/class_3542$class_7292	net/minecraft/util/INamable$EnumCodec
 c	net/minecraft/class_3542$class_8808	net/minecraft/util/INamable$StringRepresentableCodec
+c	net/minecraft/class_2291$class_7215	net/minecraft/commands/arguments/item/ArgumentParserItemStack$ItemResult

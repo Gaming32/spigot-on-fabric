@@ -20,6 +20,13 @@ public class CommandAliasHelpTopic extends HelpTopic {
         this.shortText = ChatColor.YELLOW + "Alias for " + ChatColor.WHITE + this.aliasFor;
     }
 
+    @NotNull
+    @Override
+    public String getFullText(@NotNull CommandSender forWho) {
+        SpigotOnFabric.notImplemented();
+        return super.getFullText(forWho);
+    }
+
     @Override
     public boolean canSee(@NotNull CommandSender player) {
         SpigotOnFabric.notImplemented();

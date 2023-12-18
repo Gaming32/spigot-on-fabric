@@ -76,11 +76,6 @@ public class SimpleHelpMap implements HelpMap {
         helpTopics.clear();
     }
 
-    @Override
-    public void registerHelpTopicFactory(@NotNull Class<?> commandClass, @NotNull HelpTopicFactory<?> factory) {
-        SpigotOnFabric.notImplemented();
-    }
-
     @NotNull
     @Override
     public List<String> getIgnoredPlugins() {
@@ -180,16 +175,6 @@ public class SimpleHelpMap implements HelpMap {
         }
     }
 
-    private boolean commandInIgnoredPlugin(Command command, Set<String> ignoredPlugins) {
-        if ((command instanceof BukkitCommand) && ignoredPlugins.contains("Bukkit")) {
-            return true;
-        }
-        if (command instanceof PluginIdentifiableCommand pic && ignoredPlugins.contains(pic.getPlugin().getName())) {
-            return true;
-        }
-        return false;
-    }
-
     private String getCommandPluginName(Command command) {
         if (command instanceof VanillaCommandWrapper) {
             return "Minecraft";
@@ -201,5 +186,20 @@ public class SimpleHelpMap implements HelpMap {
             return ((PluginIdentifiableCommand) command).getPlugin().getName();
         }
         return null;
+    }
+
+    private boolean commandInIgnoredPlugin(Command command, Set<String> ignoredPlugins) {
+        if ((command instanceof BukkitCommand) && ignoredPlugins.contains("Bukkit")) {
+            return true;
+        }
+        if (command instanceof PluginIdentifiableCommand pic && ignoredPlugins.contains(pic.getPlugin().getName())) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void registerHelpTopicFactory(@NotNull Class<?> commandClass, @NotNull HelpTopicFactory<?> factory) {
+        SpigotOnFabric.notImplemented();
     }
 }

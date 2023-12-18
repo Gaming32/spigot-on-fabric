@@ -28,24 +28,6 @@ public class BukkitCommandWrapper implements Command<CommandListenerWrapper>, Pr
         this.command = command;
     }
 
-    @Override
-    public int run(CommandContext<CommandListenerWrapper> context) throws CommandSyntaxException {
-        SpigotOnFabric.notImplemented();
-        return 0;
-    }
-
-    @Override
-    public boolean test(CommandListenerWrapper commandListenerWrapper) {
-        SpigotOnFabric.notImplemented();
-        return false;
-    }
-
-    @Override
-    public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandListenerWrapper> context, SuggestionsBuilder builder) throws CommandSyntaxException {
-        SpigotOnFabric.notImplemented();
-        return null;
-    }
-
     public LiteralCommandNode<CommandListenerWrapper> register(CommandDispatcher<CommandListenerWrapper> dispatcher, String label) {
         return dispatcher.register(literal(label)
             .requires(this)
@@ -55,5 +37,23 @@ public class BukkitCommandWrapper implements Command<CommandListenerWrapper>, Pr
                 .executes(this)
             )
         );
+    }
+
+    @Override
+    public boolean test(CommandListenerWrapper commandListenerWrapper) {
+        SpigotOnFabric.notImplemented();
+        return false;
+    }
+
+    @Override
+    public int run(CommandContext<CommandListenerWrapper> context) throws CommandSyntaxException {
+        SpigotOnFabric.notImplemented();
+        return 0;
+    }
+
+    @Override
+    public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandListenerWrapper> context, SuggestionsBuilder builder) throws CommandSyntaxException {
+        SpigotOnFabric.notImplemented();
+        return null;
     }
 }

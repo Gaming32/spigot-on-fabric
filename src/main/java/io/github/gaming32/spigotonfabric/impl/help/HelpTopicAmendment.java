@@ -3,7 +3,7 @@ package io.github.gaming32.spigotonfabric.impl.help;
 import lombok.Getter;
 
 @Getter
-@SuppressWarnings("ClassCanBeRecord")
+@SuppressWarnings("ClassCanBeRecord") // I don't want to deal with the remapping implications
 public class HelpTopicAmendment {
     private final String topicName;
     private final String shortText;

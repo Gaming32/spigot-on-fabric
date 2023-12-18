@@ -58,10 +58,6 @@ public class HelpYamlReader {
         }
     }
 
-    public boolean commandTopicsInMasterIndex() {
-        return helpYaml.getBoolean("command-topics-in-master-index", true);
-    }
-
     public List<HelpTopic> getGeneralTopics() {
         final List<HelpTopic> topics = new LinkedList<>();
         final ConfigurationSection generalTopics = helpYaml.getConfigurationSection("general-topics");
@@ -95,10 +91,6 @@ public class HelpYamlReader {
         return topics;
     }
 
-    public List<String> getIgnoredPlugins() {
-        return helpYaml.getStringList("ignore-plugins");
-    }
-
     public List<HelpTopicAmendment> getTopicAmendments() {
         final List<HelpTopicAmendment> amendments = new LinkedList<>();
         final ConfigurationSection commandTopics = helpYaml.getConfigurationSection("amended-topics");
@@ -113,5 +105,13 @@ public class HelpYamlReader {
             }
         }
         return amendments;
+    }
+
+    public List<String> getIgnoredPlugins() {
+        return helpYaml.getStringList("ignore-plugins");
+    }
+
+    public boolean commandTopicsInMasterIndex() {
+        return helpYaml.getBoolean("command-topics-in-master-index", true);
     }
 }

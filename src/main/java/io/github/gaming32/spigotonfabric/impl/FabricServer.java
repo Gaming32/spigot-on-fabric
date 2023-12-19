@@ -12,6 +12,7 @@ import io.github.gaming32.spigotonfabric.impl.command.VanillaCommandWrapper;
 import io.github.gaming32.spigotonfabric.impl.help.SimpleHelpMap;
 import io.github.gaming32.spigotonfabric.impl.inventory.FabricItemFactory;
 import io.github.gaming32.spigotonfabric.impl.profile.FabricPlayerProfile;
+import io.github.gaming32.spigotonfabric.impl.util.FabricMagicNumbers;
 import io.github.gaming32.spigotonfabric.impl.util.Versioning;
 import io.github.gaming32.spigotonfabric.impl.util.permissions.FabricDefaultPermissions;
 import net.fabricmc.loader.api.FabricLoader;
@@ -118,6 +119,7 @@ public class FabricServer implements Server {
     private YamlConfiguration configuration;
     private YamlConfiguration commandsConfiguration;
     private final Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
+    public String minimumAPI;
 
     public FabricServer() {
         Bukkit.setServer(this);
@@ -138,6 +140,8 @@ public class FabricServer implements Server {
         commandsConfiguration.options().copyDefaults(true);
         commandsConfiguration.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("configurations/commands.yml"), Charsets.UTF_8)));
         saveCommandsConfig();
+
+        minimumAPI = configuration.getString("settings.minimum-api");
     }
 
     @NotNull
@@ -1131,8 +1135,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public UnsafeValues getUnsafe() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return FabricMagicNumbers.INSTANCE;
     }
 
     @NotNull

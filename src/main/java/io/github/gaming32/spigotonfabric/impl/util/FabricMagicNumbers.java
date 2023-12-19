@@ -7,6 +7,7 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Dynamic;
 import io.github.gaming32.spigotonfabric.SOFRemapper;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.impl.legacy.FabricLegacy;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.DynamicOpsNBT;
@@ -73,7 +74,9 @@ public final class FabricMagicNumbers implements UnsafeValues {
         for (final Material material : Material.values()) {
             if (material.isLegacy()) continue;
 
-            SpigotOnFabric.notImplemented();
+            final MinecraftKey key = key(material);
+            BuiltInRegistries.ITEM.getOptional(key).ifPresent(item -> MATERIAL_ITEM.put(material, item));
+            BuiltInRegistries.BLOCK.getOptional(key).ifPresent(block -> MATERIAL_BLOCK.put(material, block));
         }
     }
 
@@ -133,8 +136,7 @@ public final class FabricMagicNumbers implements UnsafeValues {
     }
 
     public static MinecraftKey key(Material mat) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return FabricNamespacedKey.toMinecraft(mat.getKey());
     }
 
     public static byte toLegacyData(IBlockData data) {
@@ -238,7 +240,31 @@ public final class FabricMagicNumbers implements UnsafeValues {
 
     @Override
     public void checkSupported(PluginDescriptionFile pdf) throws InvalidPluginException {
-        SpigotOnFabric.notImplemented();
+        final String minimumVersion = SpigotOnFabric.getServer().minimumAPI;
+        final int minimumIndex = SUPPORTED_API.indexOf(minimumVersion);
+
+        if (pdf.getAPIVersion() != null) {
+            final int pluginIndex = SUPPORTED_API.indexOf(pdf.getAPIVersion());
+
+            if (pluginIndex == -1) {
+                throw new InvalidPluginException("Unsupported API version " + pdf.getAPIVersion());
+            }
+
+            if (pluginIndex < minimumIndex) {
+                throw new InvalidPluginException(
+                    "Plugin API version " + pdf.getAPIVersion() + " is lower than the minimum allowed version. Please update or replace it."
+                );
+            }
+        } else {
+            if (minimumIndex == -1) {
+                FabricLegacy.init();
+                LOGGER.warn("Legacy plugin " + pdf.getFullName() + " does not specify an api-version.");
+            } else {
+                throw new InvalidPluginException(
+                    "Plugin API version " + null + " is lower than the minimum allowed version. Please update or replace it."
+                );
+            }
+        }
     }
 
     public static boolean isLegacy(PluginDescriptionFile pdf) {

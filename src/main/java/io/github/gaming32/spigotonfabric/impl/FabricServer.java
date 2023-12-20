@@ -1,11 +1,14 @@
 package io.github.gaming32.spigotonfabric.impl;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.logging.LogUtils;
 import io.github.gaming32.spigotonfabric.SOFConstructors;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.MinecraftServerExt;
 import io.github.gaming32.spigotonfabric.impl.command.BukkitCommandWrapper;
 import io.github.gaming32.spigotonfabric.impl.command.FabricCommandMap;
 import io.github.gaming32.spigotonfabric.impl.command.VanillaCommandWrapper;
@@ -62,6 +65,7 @@ import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.Messenger;
+import org.bukkit.plugin.messaging.StandardMessenger;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.Criteria;
@@ -84,13 +88,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class FabricServer implements Server {
@@ -114,8 +112,11 @@ public class FabricServer implements Server {
         .getFriendlyString();
     private final FabricCommandMap commandMap = new FabricCommandMap(this);
     private final SimpleHelpMap helpMap = new SimpleHelpMap(this);
+    private final StandardMessenger messenger = new StandardMessenger();
     private final SimplePluginManager pluginManager = new SimplePluginManager(this, commandMap);
-    private MinecraftServer server;
+    private MinecraftServer console;
+    private final Map<String, World> worlds = new LinkedHashMap<>();
+    private final Map<Class<?>, Registry<?>> registries = new HashMap<>();
     private YamlConfiguration configuration;
     private YamlConfiguration commandsConfiguration;
     private final Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
@@ -146,11 +147,11 @@ public class FabricServer implements Server {
 
     @NotNull
     public MinecraftServer getServer() {
-        return Objects.requireNonNull(server, "Server not running");
+        return Objects.requireNonNull(console, "Server not running");
     }
 
     public void setServer(@Nullable MinecraftServer server) {
-        this.server = server;
+        this.console = server;
     }
 
     @NotNull
@@ -432,8 +433,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public PluginManager getPluginManager() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return pluginManager;
     }
 
     @NotNull
@@ -453,8 +453,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public List<World> getWorlds() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return new ArrayList<>(worlds.values());
     }
 
     @Nullable
@@ -486,8 +485,27 @@ public class FabricServer implements Server {
     @Nullable
     @Override
     public World getWorld(@NotNull UUID uid) {
-        SpigotOnFabric.notImplemented();
+        for (final World world : worlds.values()) {
+            if (world.getUID().equals(uid)) {
+                return world;
+            }
+        }
         return null;
+    }
+
+    public void addWorld(World world) {
+        if (getWorld(world.getUID()) != null) {
+            LOGGER.warn(
+                "World {} is a duplicate of another world and has been prevented from loading. " +
+                    "Please delete the uid.dat file from {}'s directory if you want to be able to load the duplicate world.",
+                world.getName(), world.getName()
+            );
+        }
+        worlds.put(world.getName().toLowerCase(Locale.ENGLISH), world);
+    }
+
+    public void clearWorlds() {
+        worlds.clear();
     }
 
     @NotNull
@@ -544,8 +562,13 @@ public class FabricServer implements Server {
     @Nullable
     @Override
     public PluginCommand getPluginCommand(@NotNull String name) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        final Command command = commandMap.getCommand(name);
+
+        if (command instanceof PluginCommand) {
+            return (PluginCommand)command;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -555,7 +578,19 @@ public class FabricServer implements Server {
 
     @Override
     public boolean dispatchCommand(@NotNull CommandSender sender, @NotNull String commandLine) throws CommandException {
-        SpigotOnFabric.notImplemented();
+        Preconditions.checkArgument(sender != null, "sender cannot be null");
+        Preconditions.checkArgument(commandLine != null, "commandLine cannot be null");
+
+        if (commandMap.dispatch(sender, commandLine)) {
+            return true;
+        }
+
+        if (sender instanceof Player) {
+            sender.sendMessage("Unknown command. Type \"/help\" for help.");
+        } else {
+            sender.sendMessage("Unknown command. Type \"help\" for help.");
+        }
+
         return false;
     }
 
@@ -640,8 +675,24 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public Map<String, String[]> getCommandAliases() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        final ConfigurationSection section = commandsConfiguration.getConfigurationSection("aliases");
+        final Map<String, String[]> result = new LinkedHashMap<>();
+
+        if (section != null) {
+            for (final String key : section.getKeys(false)) {
+                final List<String> commands;
+
+                if (section.isList(key)) {
+                    commands = section.getStringList(key);
+                } else {
+                    commands = ImmutableList.of(section.getString(key));
+                }
+
+                result.put(key, commands.toArray(new String[0]));
+            }
+        }
+
+        return result;
     }
 
     @Override
@@ -788,8 +839,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public GameMode getDefaultGameMode() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return GameMode.getByValue(console.getLevel(net.minecraft.world.level.World.OVERWORLD).serverLevelData.getGameType().getId());
     }
 
     @Override
@@ -821,8 +871,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public Messenger getMessenger() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return messenger;
     }
 
     @NotNull
@@ -917,8 +966,7 @@ public class FabricServer implements Server {
 
     @Override
     public boolean isPrimaryThread() {
-        SpigotOnFabric.notImplemented();
-        return false;
+        return Thread.currentThread().equals(console.getRunningThread()) || ((MinecraftServerExt)console).sof$hasStopped();
     }
 
     @NotNull
@@ -1127,9 +1175,9 @@ public class FabricServer implements Server {
 
     @Nullable
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Keyed> Registry<T> getRegistry(@NotNull Class<T> tClass) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return (Registry<T>)registries.computeIfAbsent(tClass, key -> FabricRegistry.createRegistry(tClass, console.registryAccess()));
     }
 
     @NotNull
@@ -1204,6 +1252,10 @@ public class FabricServer implements Server {
         }
     }
 
+    public void disablePlugins() {
+        pluginManager.disablePlugins();
+    }
+
     private void loadCustomPermissions() {
         //noinspection DataFlowIssue
         File file = new File(configuration.getString("settings.permissions-file"));
@@ -1253,7 +1305,7 @@ public class FabricServer implements Server {
     }
 
     private void setVanillaCommands() {
-        CommandDispatcher dispatcher = server.getCommands();
+        CommandDispatcher dispatcher = console.getCommands();
 
         // Build a list of all Vanilla commands and create wrappers
         for (CommandNode<CommandListenerWrapper> cmd : dispatcher.getDispatcher().getRoot().getChildren()) {
@@ -1286,7 +1338,7 @@ public class FabricServer implements Server {
 
     public void syncCommands() {
         // Clear existing commands
-        CommandDispatcher dispatcher = server.resources.managers().commands = SOFConstructors.newCommandDispatcher();
+        CommandDispatcher dispatcher = console.resources.managers().commands = SOFConstructors.newCommandDispatcher();
 
         // Register all commands, vanilla ones will be using the old dispatcher references
         for (Map.Entry<String, Command> entry : commandMap.getKnownCommands().entrySet()) {
@@ -1346,6 +1398,6 @@ public class FabricServer implements Server {
 
     @Override
     public String toString() {
-        return "CraftServer{serverName=" + NAME + ",serverVersion=" + serverVersion + ",minecraftVersion=" + server.getServerVersion() + '}';
+        return "FabricServer{serverName=" + NAME + ",serverVersion=" + serverVersion + ",minecraftVersion=" + console.getServerVersion() + '}';
     }
 }

@@ -125,7 +125,7 @@ public final class FabricItemFactory implements ItemFactory {
     @Override
     public ItemStack createItemStack(@NotNull String input) throws IllegalArgumentException {
         try {
-            ArgumentParserItemStack.ItemResult arg = ArgumentParserItemStack.parseForItem(BuiltInRegistries.ITEM.asLookup(), new StringReader(input));
+            ArgumentParserItemStack.a arg = ArgumentParserItemStack.parseForItem(BuiltInRegistries.ITEM.asLookup(), new StringReader(input));
 
             Item item = arg.item().value();
             net.minecraft.world.item.ItemStack nmsItemStack = new net.minecraft.world.item.ItemStack(item);

@@ -4,9 +4,28 @@
   "package": "io.github.gaming32.spigotonfabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinDedicatedServer"
+    "MixinCommandDispatcher",
+    "MixinCommandListenerWrapper",
+    "MixinDedicatedServer",
+    "MixinEntity",
+    "MixinEntityMinecartCommandBlock_a",
+    "MixinICommandListener",
+    "MixinICommandListener$Mixin1",
+    "MixinMinecraftServer",
+    "MixinPlayerConnection",
+    "MixinRemoteControlCommandListener",
+    "MixinServerCommonPacketListenerImpl",
+    "MixinTileEntityCommand_1",
+    "MixinTileEntityLectern",
+    "MixinTileEntitySign",
+    "MixinWorld",
+    "MixinWorldServer",
+    "fabric.MixinAbstractChanneledNetworkAddon",
+    "fabric.MixinAbstractNetworkAddon",
+    "fabric.ServerPlayNetworkAddonAccessor"
   ],
   "client": [
+    "client.MixinIntegratedServer"
   ],
   "injectors": {
     "defaultRequire": 1

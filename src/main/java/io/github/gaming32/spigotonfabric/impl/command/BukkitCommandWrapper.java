@@ -1,6 +1,5 @@
 package io.github.gaming32.spigotonfabric.impl.command;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -10,20 +9,25 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.CommandListenerWrapperExt;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import net.minecraft.commands.CommandListenerWrapper;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandException;
+import org.bukkit.command.CommandSender;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+import java.util.logging.Level;
 
 import static net.minecraft.commands.CommandDispatcher.argument;
 import static net.minecraft.commands.CommandDispatcher.literal;
 
-public class BukkitCommandWrapper implements Command<CommandListenerWrapper>, Predicate<CommandListenerWrapper>, SuggestionProvider<CommandListenerWrapper> {
+public class BukkitCommandWrapper implements com.mojang.brigadier.Command<CommandListenerWrapper>, Predicate<CommandListenerWrapper>, SuggestionProvider<CommandListenerWrapper> {
     private final FabricServer server;
-    private final org.bukkit.command.Command command;
+    private final Command command;
 
-    public BukkitCommandWrapper(FabricServer server, org.bukkit.command.Command command) {
+    public BukkitCommandWrapper(FabricServer server, Command command) {
         this.server = server;
         this.command = command;
     }
@@ -41,14 +45,20 @@ public class BukkitCommandWrapper implements Command<CommandListenerWrapper>, Pr
 
     @Override
     public boolean test(CommandListenerWrapper commandListenerWrapper) {
-        SpigotOnFabric.notImplemented();
-        return false;
+        return command.testPermissionSilent(((CommandListenerWrapperExt)commandListenerWrapper).sof$getBukkitSender());
     }
 
     @Override
     public int run(CommandContext<CommandListenerWrapper> context) throws CommandSyntaxException {
-        SpigotOnFabric.notImplemented();
-        return 0;
+        CommandSender sender = ((CommandListenerWrapperExt)context.getSource()).sof$getBukkitSender();
+
+        try {
+            return server.dispatchCommand(sender, context.getInput()) ? 1 : 0;
+        } catch (CommandException ex) {
+            sender.sendMessage(org.bukkit.ChatColor.RED + "An internal error occurred while attempting to perform this command");
+            server.getLogger().log(Level.SEVERE, null, ex);
+            return 0;
+        }
     }
 
     @Override

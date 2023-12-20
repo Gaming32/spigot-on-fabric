@@ -1,10 +1,12 @@
 package io.github.gaming32.spigotonfabric.impl.help;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
-import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import io.github.gaming32.spigotonfabric.impl.command.VanillaCommandWrapper;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.MultipleCommandAlias;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -50,37 +52,47 @@ public class SimpleHelpMap implements HelpMap {
             Collections2.filter(helpTopics.values(), indexFilter::test),
             "Use /help [n] to get page n of help."
         );
+
+        registerHelpTopicFactory(MultipleCommandAlias.class, new MultipleCommandAliasHelpTopicFactory());
     }
 
     @Nullable
     @Override
-    public HelpTopic getHelpTopic(@NotNull String topicName) {
-        SpigotOnFabric.notImplemented();
+    public synchronized HelpTopic getHelpTopic(@NotNull String topicName) {
+        if (topicName.isEmpty()) {
+            return defaultTopic;
+        }
+
+        if (helpTopics.containsKey(topicName)) {
+            return helpTopics.get(topicName);
+        }
+
         return null;
     }
 
     @NotNull
     @Override
     public Collection<HelpTopic> getHelpTopics() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return helpTopics.values();
     }
 
     @Override
-    public void addTopic(@NotNull HelpTopic topic) {
-        SpigotOnFabric.notImplemented();
+    public synchronized void addTopic(@NotNull HelpTopic topic) {
+        // Existing topics take priority
+        if (!helpTopics.containsKey(topic.getName())) {
+            helpTopics.put(topic.getName(), topic);
+        }
     }
 
     @Override
-    public void clear() {
+    public synchronized void clear() {
         helpTopics.clear();
     }
 
     @NotNull
     @Override
     public List<String> getIgnoredPlugins() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return yaml.getIgnoredPlugins();
     }
 
     public synchronized void initializeGeneralTopics() {
@@ -199,7 +211,9 @@ public class SimpleHelpMap implements HelpMap {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void registerHelpTopicFactory(@NotNull Class<?> commandClass, @NotNull HelpTopicFactory<?> factory) {
-        SpigotOnFabric.notImplemented();
+        Preconditions.checkArgument(Command.class.isAssignableFrom(commandClass) || CommandExecutor.class.isAssignableFrom(commandClass), "commandClass (%s) must implement either Command or CommandExecutor", commandClass.getName());
+        topicFactoryMap.put(commandClass, (HelpTopicFactory<Command>)factory);
     }
 }

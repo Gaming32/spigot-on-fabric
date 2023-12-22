@@ -84,15 +84,23 @@ public final class FabricEntityTypes {
     static {
         // Living
         register(new EntityTypeData<>(EntityType.ELDER_GUARDIAN, ElderGuardian.class, FabricElderGuardian::new, createLiving(EntityTypes.ELDER_GUARDIAN)));
-        // TODO
+        register(new EntityTypeData<>(EntityType.WITHER_SKELETON, WitherSkeleton.class, FabricWitherSkeleton::new, createLiving(EntityTypes.WITHER_SKELETON)));
+        register(new EntityTypeData<>(EntityType.STRAY, Stray.class, FabricStray::new, createLiving(EntityTypes.STRAY)));
+        register(new EntityTypeData<>(EntityType.HUSK, Husk.class, FabricHusk::new, createLiving(EntityTypes.HUSK)));
         register(new EntityTypeData<>(EntityType.ZOMBIE_VILLAGER, ZombieVillager.class, FabricVillagerZombie::new, createLiving(EntityTypes.ZOMBIE_VILLAGER)));
-        // TODO
+        register(new EntityTypeData<>(EntityType.SKELETON_HORSE, SkeletonHorse.class, FabricSkeletonHorse::new, createLiving(EntityTypes.SKELETON_HORSE)));
+        register(new EntityTypeData<>(EntityType.ZOMBIE_HORSE, ZombieHorse.class, FabricZombieHorse::new, createLiving(EntityTypes.ZOMBIE_HORSE)));
+        register(new EntityTypeData<>(EntityType.ARMOR_STAND, ArmorStand.class, FabricArmorStand::new, createLiving(EntityTypes.ARMOR_STAND)));
         register(new EntityTypeData<>(EntityType.DONKEY, Donkey.class, FabricDonkey::new, createLiving(EntityTypes.DONKEY)));
-        // TODO
+        register(new EntityTypeData<>(EntityType.MULE, Mule.class, FabricMule::new, createLiving(EntityTypes.MULE)));
+        register(new EntityTypeData<>(EntityType.EVOKER, Evoker.class, FabricEvoker::new, createLiving(EntityTypes.EVOKER)));
+        register(new EntityTypeData<>(EntityType.VEX, Vex.class, FabricVex::new, createLiving(EntityTypes.VEX)));
+        register(new EntityTypeData<>(EntityType.VINDICATOR, Vindicator.class, FabricVindicator::new, createLiving(EntityTypes.VINDICATOR)));
+        register(new EntityTypeData<>(EntityType.ILLUSIONER, Illusioner.class, FabricIllusioner::new, createLiving(EntityTypes.ILLUSIONER)));
         register(new EntityTypeData<>(EntityType.CREEPER, Creeper.class, FabricCreeper::new, createLiving(EntityTypes.CREEPER)));
         register(new EntityTypeData<>(EntityType.SKELETON, Skeleton.class, FabricSkeleton::new, createLiving(EntityTypes.SKELETON)));
         register(new EntityTypeData<>(EntityType.SPIDER, Spider.class, FabricSpider::new, createLiving(EntityTypes.SPIDER)));
-        // TODO
+        register(new EntityTypeData<>(EntityType.GIANT, Giant.class, FabricGiant::new, createLiving(EntityTypes.GIANT)));
         register(new EntityTypeData<>(EntityType.ZOMBIE, Zombie.class, FabricZombie::new, createLiving(EntityTypes.ZOMBIE)));
         register(new EntityTypeData<>(EntityType.SLIME, Slime.class, FabricSlime::new, createLiving(EntityTypes.SLIME)));
         // TODO

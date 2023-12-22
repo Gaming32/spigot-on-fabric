@@ -83,3 +83,11 @@ accessible	field	net/minecraft/world/level/chunk/storage/EntityStorage	entityDes
 accessible	method	net/minecraft/server/level/PlayerChunkMap	getUpdatingChunkIfPresent	(J)Lnet/minecraft/server/level/PlayerChunk;
 accessible	method	net/minecraft/world/entity/animal/horse/EntityHorseAbstract	createInventory	()V
 accessible	method	net/minecraft/world/entity/monster/EntityGuardian	setActiveAttackTarget	(I)V
+accessible	field	net/minecraft/world/entity/animal/horse/EntityHorseSkeleton	trapTime	I
+accessible	method	net/minecraft/world/entity/decoration/EntityArmorStand	setSmall	(Z)V
+accessible	method	net/minecraft/world/entity/decoration/EntityArmorStand	setMarker	(Z)V
+accessible	class	net/minecraft/world/entity/monster/EntityIllagerWizard$Spell
+accessible	method	net/minecraft/world/entity/monster/EntityIllagerWizard	getCurrentSpell	()Lnet/minecraft/world/entity/monster/EntityIllagerWizard$Spell;
+accessible	field	net/minecraft/world/entity/monster/EntityVex	limitedLifeTicks	I
+accessible	field	net/minecraft/world/entity/monster/EntityVex	hasLimitedLife	Z
+accessible	field	net/minecraft/world/entity/monster/EntityVindicator	isJohnny	Z

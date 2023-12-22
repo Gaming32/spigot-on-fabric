@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Locale;
 
+// TODO: Expand system to support direct subclasses of abstract entity types, such as LivingEntity
 public class EntityClassToSpigotEntityType {
     public static final ImmutableMap<Class<? extends Entity>, EntityType> MAPPING = ImmutableMap.<Class<? extends Entity>, EntityType>builder()
         .put(net.minecraft.world.entity.item.EntityItem.class, EntityType.DROPPED_ITEM)
@@ -137,7 +138,7 @@ public class EntityClassToSpigotEntityType {
         .put(net.minecraft.world.entity.projectile.EntityFishingHook.class, EntityType.FISHING_HOOK)
         .put(net.minecraft.world.entity.EntityLightning.class, EntityType.LIGHTNING)
         .put(net.minecraft.world.entity.player.EntityHuman.class, EntityType.PLAYER)
-        .build();
+        .buildOrThrow();
 
     public static void main(String[] args) throws Exception {
         for (final EntityType entityType : EntityType.values()) {

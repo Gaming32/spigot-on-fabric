@@ -14,6 +14,7 @@ import net.minecraft.world.level.World;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.PluginLoadOrder;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,9 +22,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
+import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)
 public abstract class MixinMinecraftServer implements MinecraftServerExt {
+    @Shadow private int tickCount;
     @Unique
     private boolean sof$hasStopped = false;
     @Unique
@@ -110,5 +113,17 @@ public abstract class MixinMinecraftServer implements MinecraftServerExt {
             player.sof$getPlayerTime(dayTime),
             !daylightCycleOff
         );
+    }
+
+    @Inject(
+        method = "tickChildren",
+        at = @At(
+            value = "INVOKE_STRING",
+            target = "Lnet/minecraft/util/profiling/GameProfilerFiller;push(Ljava/lang/String;)V",
+            args = "ldc=commandFunctions"
+        )
+    )
+    private void tickScheduler(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
+        SpigotOnFabric.getServer().getScheduler().mainThreadHeartbeat(tickCount);
     }
 }

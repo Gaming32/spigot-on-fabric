@@ -81,3 +81,5 @@ accessible	field	net/minecraft/world/level/chunk/storage/ChunkRegionLoader	BLOCK
 accessible	field	net/minecraft/world/level/chunk/IChunkAccess	heightmaps	Ljava/util/Map;
 accessible	field	net/minecraft/world/level/chunk/storage/EntityStorage	entityDeserializerQueue	Lnet/minecraft/util/thread/ThreadedMailbox;
 accessible	method	net/minecraft/server/level/PlayerChunkMap	getUpdatingChunkIfPresent	(J)Lnet/minecraft/server/level/PlayerChunk;
+accessible	method	net/minecraft/world/entity/animal/horse/EntityHorseAbstract	createInventory	()V
+accessible	method	net/minecraft/world/entity/monster/EntityGuardian	setActiveAttackTarget	(I)V

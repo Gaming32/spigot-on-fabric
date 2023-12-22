@@ -83,8 +83,11 @@ public final class FabricEntityTypes {
 
     static {
         // Living
+        register(new EntityTypeData<>(EntityType.ELDER_GUARDIAN, ElderGuardian.class, FabricElderGuardian::new, createLiving(EntityTypes.ELDER_GUARDIAN)));
         // TODO
         register(new EntityTypeData<>(EntityType.ZOMBIE_VILLAGER, ZombieVillager.class, FabricVillagerZombie::new, createLiving(EntityTypes.ZOMBIE_VILLAGER)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.DONKEY, Donkey.class, FabricDonkey::new, createLiving(EntityTypes.DONKEY)));
         // TODO
         register(new EntityTypeData<>(EntityType.CREEPER, Creeper.class, FabricCreeper::new, createLiving(EntityTypes.CREEPER)));
         register(new EntityTypeData<>(EntityType.SKELETON, Skeleton.class, FabricSkeleton::new, createLiving(EntityTypes.SKELETON)));
@@ -103,6 +106,9 @@ public final class FabricEntityTypes {
         register(new EntityTypeData<>(EntityType.COW, Cow.class, FabricCow::new, createLiving(EntityTypes.COW)));
         register(new EntityTypeData<>(EntityType.CHICKEN, Chicken.class, FabricChicken::new, createLiving(EntityTypes.CHICKEN)));
         register(new EntityTypeData<>(EntityType.SQUID, Squid.class, FabricSquid::new, createLiving(EntityTypes.SQUID)));
+        register(new EntityTypeData<>(EntityType.WOLF, Wolf.class, FabricWolf::new, createLiving(EntityTypes.WOLF)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.RABBIT, Rabbit.class, FabricRabbit::new, createLiving(EntityTypes.RABBIT)));
         // TODO
         register(new EntityTypeData<>(EntityType.PARROT, Parrot.class, FabricParrot::new, createLiving(EntityTypes.PARROT)));
         // TODO

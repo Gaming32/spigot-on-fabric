@@ -8,6 +8,7 @@ import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataContainer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataTypeRegistry;
 import io.github.gaming32.spigotonfabric.impl.util.FabricLocation;
+import io.github.gaming32.spigotonfabric.impl.util.FabricVector;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -123,7 +124,8 @@ public class FabricEntity implements org.bukkit.entity.Entity {
     public void setVelocity(@NotNull Vector velocity) {
         Preconditions.checkArgument(velocity != null, "velocity");
         velocity.checkFinite();
-        SpigotOnFabric.notImplemented();
+        entity.setDeltaMovement(FabricVector.toNMS(velocity));
+        entity.hurtMarked = true;
     }
 
     @Override

@@ -82,7 +82,6 @@ import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.StandardMessenger;
 import org.bukkit.profile.PlayerProfile;
-import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.structure.StructureManager;
@@ -477,7 +476,7 @@ public class FabricServer implements Server {
 
     @NotNull
     @Override
-    public BukkitScheduler getScheduler() {
+    public FabricScheduler getScheduler() {
         return scheduler;
     }
 

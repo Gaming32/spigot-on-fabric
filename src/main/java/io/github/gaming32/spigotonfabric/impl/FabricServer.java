@@ -3,18 +3,27 @@ package io.github.gaming32.spigotonfabric.impl;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.mojang.logging.LogUtils;
 import io.github.gaming32.spigotonfabric.SOFConstructors;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.AdvancementHolderExt;
+import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.ext.MinecraftServerExt;
+import io.github.gaming32.spigotonfabric.ext.WorldServerExt;
 import io.github.gaming32.spigotonfabric.impl.command.BukkitCommandWrapper;
 import io.github.gaming32.spigotonfabric.impl.command.FabricCommandMap;
 import io.github.gaming32.spigotonfabric.impl.command.VanillaCommandWrapper;
+import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
 import io.github.gaming32.spigotonfabric.impl.help.SimpleHelpMap;
 import io.github.gaming32.spigotonfabric.impl.inventory.FabricItemFactory;
 import io.github.gaming32.spigotonfabric.impl.profile.FabricPlayerProfile;
+import io.github.gaming32.spigotonfabric.impl.scheduler.FabricScheduler;
+import io.github.gaming32.spigotonfabric.impl.scoreboard.FabricScoreboardManager;
+import io.github.gaming32.spigotonfabric.impl.util.FabricLocation;
 import io.github.gaming32.spigotonfabric.impl.util.FabricMagicNumbers;
 import io.github.gaming32.spigotonfabric.impl.util.Versioning;
 import io.github.gaming32.spigotonfabric.impl.util.permissions.FabricDefaultPermissions;
@@ -23,7 +32,9 @@ import net.minecraft.commands.CommandDispatcher;
 import net.minecraft.commands.CommandListenerWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.phys.Vec3D;
 import org.bukkit.*;
 import org.bukkit.advancement.Advancement;
 import org.bukkit.block.data.BlockData;
@@ -45,6 +56,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.SpawnCategory;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerChatTabCompleteEvent;
+import org.bukkit.event.server.BroadcastMessageEvent;
+import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.help.HelpMap;
 import org.bukkit.inventory.Inventory;
@@ -57,6 +71,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.loot.LootTable;
 import org.bukkit.map.MapView;
 import org.bukkit.packs.DataPackManager;
+import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.Permission;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLoadOrder;
@@ -72,6 +87,7 @@ import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.structure.StructureManager;
 import org.bukkit.util.CachedServerIcon;
+import org.bukkit.util.StringUtil;
 import org.bukkit.util.permissions.DefaultPermissions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,17 +126,21 @@ public class FabricServer implements Server {
         .getMetadata()
         .getVersion()
         .getFriendlyString();
+    private final FabricScheduler scheduler = new FabricScheduler();
     private final FabricCommandMap commandMap = new FabricCommandMap(this);
     private final SimpleHelpMap helpMap = new SimpleHelpMap(this);
     private final StandardMessenger messenger = new StandardMessenger();
     private final SimplePluginManager pluginManager = new SimplePluginManager(this, commandMap);
     private MinecraftServer console;
+    private PlayerList playerList;
     private final Map<String, World> worlds = new LinkedHashMap<>();
     private final Map<Class<?>, Registry<?>> registries = new HashMap<>();
     private YamlConfiguration configuration;
     private YamlConfiguration commandsConfiguration;
     private final Yaml yaml = new Yaml(new SafeConstructor(new LoaderOptions()));
     public String minimumAPI;
+    public FabricScoreboardManager scoreboardManager;
+    private List<FabricPlayer> playerView;
 
     public FabricServer() {
         Bukkit.setServer(this);
@@ -152,6 +172,21 @@ public class FabricServer implements Server {
 
     public void setServer(@Nullable MinecraftServer server) {
         this.console = server;
+        if (server == null) {
+            worlds.clear();
+            playerList = null;
+            playerView = null;
+            FabricRegistry.setMinecraftRegistry(null);
+        } else {
+            FabricRegistry.setMinecraftRegistry(server.registryAccess());
+        }
+    }
+
+    public void setPlayerList(PlayerList playerList) {
+        this.playerList = playerList;
+        playerView = Collections.unmodifiableList(Lists.transform(
+            playerList.players, p -> ((FabricPlayer)((EntityExt)p).sof$getBukkitEntity())
+        ));
     }
 
     @NotNull
@@ -175,8 +210,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public Collection<? extends Player> getOnlinePlayers() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return this.playerView;
     }
 
     @Override
@@ -337,8 +371,7 @@ public class FabricServer implements Server {
 
     @Override
     public int broadcastMessage(@NotNull String message) {
-        SpigotOnFabric.notImplemented();
-        return 0;
+        return broadcast(message, BROADCAST_CHANNEL_USERS);
     }
 
     @NotNull
@@ -426,7 +459,13 @@ public class FabricServer implements Server {
     @Nullable
     @Override
     public Player getPlayer(@NotNull UUID id) {
-        SpigotOnFabric.notImplemented();
+        Preconditions.checkArgument(id != null, "UUID id cannot be null");
+
+        final EntityPlayer player = playerList.getPlayer(id);
+        if (player != null) {
+            return (Player)((EntityExt)player).sof$getBukkitEntity();
+        }
+
         return null;
     }
 
@@ -439,8 +478,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public BukkitScheduler getScheduler() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return scheduler;
     }
 
     @NotNull
@@ -478,8 +516,9 @@ public class FabricServer implements Server {
     @Nullable
     @Override
     public World getWorld(@NotNull String name) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        Preconditions.checkArgument(name != null, "name cannot be null");
+
+        return worlds.get(name.toLowerCase(Locale.ENGLISH));
     }
 
     @Nullable
@@ -502,10 +541,6 @@ public class FabricServer implements Server {
             );
         }
         worlds.put(world.getName().toLowerCase(Locale.ENGLISH), world);
-    }
-
-    public void clearWorlds() {
-        worlds.clear();
     }
 
     @NotNull
@@ -749,8 +784,25 @@ public class FabricServer implements Server {
 
     @Override
     public int broadcast(@NotNull String message, @NotNull String permission) {
-        SpigotOnFabric.notImplemented();
-        return 0;
+        final Set<CommandSender> recipients = new HashSet<>();
+        for (final Permissible permissible : getPluginManager().getPermissionSubscriptions(permission)) {
+            if (permissible instanceof CommandSender sender && permissible.hasPermission(permission)) {
+                recipients.add(sender);
+            }
+        }
+
+        final BroadcastMessageEvent broadcastMessageEvent = new BroadcastMessageEvent(!Bukkit.isPrimaryThread(), message, recipients);
+        getPluginManager().callEvent(broadcastMessageEvent);
+
+        if (broadcastMessageEvent.isCancelled()) {
+            return 0;
+        }
+
+        for (final CommandSender recipient : recipients) {
+            recipient.sendMessage(message);
+        }
+
+        return recipients.size();
     }
 
     @NotNull
@@ -877,8 +929,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public HelpMap getHelpMap() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return helpMap;
     }
 
     @NotNull
@@ -1005,8 +1056,7 @@ public class FabricServer implements Server {
     @Nullable
     @Override
     public ScoreboardManager getScoreboardManager() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return scoreboardManager;
     }
 
     @NotNull
@@ -1106,8 +1156,10 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public Iterator<Advancement> advancementIterator() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return Iterators.unmodifiableIterator(Iterators.transform(
+            console.getAdvancements().getAllAdvancements().iterator(),
+            advancement -> ((AdvancementHolderExt)(Object)advancement).sof$toBukkit()
+        ));
     }
 
     @NotNull
@@ -1394,6 +1446,59 @@ public class FabricServer implements Server {
 
     public PlayerList getHandle() {
         return getServer().getPlayerList();
+    }
+
+    public List<String> tabComplete(CommandSender sender, String message, WorldServer world, Vec3D pos, boolean forceCommand) {
+        if (!(sender instanceof Player player)) {
+            return ImmutableList.of();
+        }
+
+        final List<String> offers;
+        if (message.startsWith("/") || forceCommand) {
+            offers = tabCompleteCommand(player, message, world, pos);
+        } else {
+            offers = tabCompleteChat(player, message);
+        }
+
+        final TabCompleteEvent event = new TabCompleteEvent(player, message, offers);
+        getPluginManager().callEvent(event);
+
+        return event.isCancelled() ? ImmutableList.of() : event.getCompletions();
+    }
+
+    public List<String> tabCompleteCommand(Player player, String message, WorldServer world, Vec3D pos) {
+        List<String> completions = ImmutableList.of();
+        try {
+            if (message.startsWith("/")) {
+                message = message.substring(1);
+            }
+            if (pos == null) {
+                completions = getCommandMap().tabComplete(player, message);
+            } else {
+                completions = getCommandMap().tabComplete(player, message, FabricLocation.toBukkit(pos, ((WorldServerExt)world).sof$getWorld()));
+            }
+        } catch (CommandException ex) {
+            player.sendMessage(ChatColor.RED + "An internal error occurred while attempting to tab-complete this command");
+            LOGGER.error("Exception when {} attempted to tab complete {}", player.getName(), message, ex);
+        }
+
+        return completions;
+    }
+
+    public List<String> tabCompleteChat(Player player, String message) {
+        final List<String> completions = new ArrayList<>();
+        final PlayerChatTabCompleteEvent event = new PlayerChatTabCompleteEvent(player, message, completions);
+        final String token = event.getLastToken();
+        for (final Player p : getOnlinePlayers()) {
+            if (player.canSee(p) && StringUtil.startsWithIgnoreCase(p.getName(), token)) {
+                completions.add(p.getName());
+            }
+        }
+        pluginManager.callEvent(event);
+
+        completions.removeIf(c -> !(c instanceof String));
+        completions.sort(String.CASE_INSENSITIVE_ORDER);
+        return completions;
     }
 
     @Override

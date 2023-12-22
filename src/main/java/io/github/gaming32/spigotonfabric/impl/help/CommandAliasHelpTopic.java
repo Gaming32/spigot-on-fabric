@@ -1,7 +1,6 @@
 package io.github.gaming32.spigotonfabric.impl.help;
 
 import com.google.common.base.Preconditions;
-import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.help.HelpMap;
@@ -23,13 +22,28 @@ public class CommandAliasHelpTopic extends HelpTopic {
     @NotNull
     @Override
     public String getFullText(@NotNull CommandSender forWho) {
-        SpigotOnFabric.notImplemented();
-        return super.getFullText(forWho);
+        Preconditions.checkArgument(forWho != null, "CommandServer forWho cannot be null");
+        StringBuilder sb = new StringBuilder(shortText);
+        HelpTopic aliasForTopic = helpMap.getHelpTopic(aliasFor);
+        if (aliasForTopic != null) {
+            sb.append("\n");
+            sb.append(aliasForTopic.getFullText(forWho));
+        }
+        return sb.toString();
     }
 
     @Override
     public boolean canSee(@NotNull CommandSender player) {
-        SpigotOnFabric.notImplemented();
-        return false;
+        Preconditions.checkArgument(player != null, "CommandServer cannot be null");
+        if (amendedPermission == null) {
+            HelpTopic aliasForTopic = helpMap.getHelpTopic(aliasFor);
+            if (aliasForTopic != null) {
+                return aliasForTopic.canSee(player);
+            } else {
+                return false;
+            }
+        } else {
+            return player.hasPermission(amendedPermission);
+        }
     }
 }

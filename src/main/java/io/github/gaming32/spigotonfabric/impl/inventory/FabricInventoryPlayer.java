@@ -2,6 +2,9 @@ package io.github.gaming32.spigotonfabric.impl.inventory;
 
 import com.google.common.base.Preconditions;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
+import net.minecraft.network.protocol.game.PacketPlayOutSetSlot;
+import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.player.PlayerInventory;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.EntityEquipment;
@@ -76,7 +79,18 @@ public class FabricInventoryPlayer extends FabricInventory implements org.bukkit
     public void setItem(int index, @Nullable ItemStack item) {
         super.setItem(index, item);
         if (this.getHolder() == null) return;
-        SpigotOnFabric.notImplemented();
+        final EntityPlayer player = ((FabricPlayer)this.getHolder()).getHandle();
+        if (player.connection == null) return;
+        if (index < PlayerInventory.getSelectionSize()) {
+            index += 36;
+        } else if (index > 39) {
+            index += 5;
+        } else if (index > 35) {
+            index = 8 - (index - 36);
+        }
+        player.connection.send(new PacketPlayOutSetSlot(
+            player.inventoryMenu.containerId, player.inventoryMenu.incrementStateId(), index, FabricItemStack.asNMSCopy(item)
+        ));
     }
 
     @Override

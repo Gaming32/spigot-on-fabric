@@ -3,8 +3,10 @@ package io.github.gaming32.spigotonfabric.impl.entity;
 import com.google.common.base.Preconditions;
 import com.mojang.logging.LogUtils;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import io.github.gaming32.spigotonfabric.impl.inventory.FabricEntityEquipment;
+import io.github.gaming32.spigotonfabric.impl.potion.FabricPotionEffectType;
 import net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.world.effect.MobEffect;
@@ -69,7 +71,16 @@ public class FabricLivingEntity extends FabricEntity implements LivingEntity {
             "Health value (%s) must be between 0 and %s", health, this.getMaxHealth()
         );
 
-        SpigotOnFabric.notImplemented();
+        if (((EntityExt)getHandle()).sof$isGeneration() && health == 0) {
+            getHandle().discard();
+            return;
+        }
+
+        getHandle().setHealth((float)health);
+
+        if (health == 0) {
+            getHandle().die(getHandle().damageSources().generic());
+        }
     }
 
     @Override
@@ -87,8 +98,7 @@ public class FabricLivingEntity extends FabricEntity implements LivingEntity {
 
     @Override
     public double getMaxHealth() {
-        SpigotOnFabric.notImplemented();
-        return 0;
+        return getHandle().getMaxHealth();
     }
 
     @Override
@@ -300,8 +310,12 @@ public class FabricLivingEntity extends FabricEntity implements LivingEntity {
 
     @Override
     public boolean addPotionEffect(@NotNull PotionEffect effect, boolean force) {
-        SpigotOnFabric.notImplemented();
-        return false;
+        getHandle().addEffect(new MobEffect(
+            FabricPotionEffectType.bukkitToMinecraft(effect.getType()),
+            effect.getDuration(), effect.getAmplifier(),
+            effect.isAmbient(), effect.hasParticles()
+        ) /*, EntityPotionEffectEvent.Cause.PLUGIN */);
+        return true;
     }
 
     @Override

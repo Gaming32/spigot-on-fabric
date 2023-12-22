@@ -89,7 +89,8 @@ final class FabricObjective extends FabricScoreboardComponent implements Objecti
             }
         }
         if (slot != null) {
-            SpigotOnFabric.notImplemented();
+            final net.minecraft.world.scores.DisplaySlot slotNumber = FabricScoreboardTranslations.fromBukkitSlot(slot);
+            board.setDisplayObjective(slotNumber, getHandle());
         }
     }
 
@@ -114,7 +115,7 @@ final class FabricObjective extends FabricScoreboardComponent implements Objecti
         Preconditions.checkArgument(renderType != null, "RenderType cannot be null");
         checkState();
 
-        SpigotOnFabric.notImplemented();
+        this.objective.setRenderType(FabricScoreboardTranslations.fromBukkitRender(renderType));
     }
 
     @NotNull

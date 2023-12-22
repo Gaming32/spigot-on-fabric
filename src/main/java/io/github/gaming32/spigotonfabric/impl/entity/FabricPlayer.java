@@ -4,19 +4,28 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
+import io.github.gaming32.spigotonfabric.SOFConstructors;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.PlayerConnectionExt;
 import io.github.gaming32.spigotonfabric.impl.FabricOfflinePlayer;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
+import io.github.gaming32.spigotonfabric.impl.FabricWorld;
 import io.github.gaming32.spigotonfabric.impl.FabricWorldBorder;
+import io.github.gaming32.spigotonfabric.impl.advancement.FabricAdvancement;
+import io.github.gaming32.spigotonfabric.impl.advancement.FabricAdvancementProgress;
 import io.github.gaming32.spigotonfabric.impl.conversations.ConversationTracker;
 import io.github.gaming32.spigotonfabric.impl.profile.FabricPlayerProfile;
 import io.github.gaming32.spigotonfabric.impl.scoreboard.FabricScoreboard;
 import io.github.gaming32.spigotonfabric.impl.util.FabricChatMessage;
+import io.github.gaming32.spigotonfabric.impl.util.FabricLocation;
 import it.unimi.dsi.fastutil.shorts.ShortArraySet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
 import lombok.Setter;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.chat.IChatBaseComponent;
@@ -27,6 +36,7 @@ import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutGameStateChange;
 import net.minecraft.network.protocol.game.PacketPlayOutUpdateHealth;
 import net.minecraft.resources.MinecraftKey;
+import net.minecraft.server.AdvancementDataPlayer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.PlayerChunkMap;
 import net.minecraft.server.level.WorldServer;
@@ -38,6 +48,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifiable;
 import net.minecraft.world.entity.ai.attributes.GenericAttributes;
 import net.minecraft.world.food.FoodMetaData;
 import net.minecraft.world.inventory.Container;
+import net.minecraft.world.level.EnumGamemode;
 import net.minecraft.world.level.block.state.IBlockData;
 import net.minecraft.world.level.border.IWorldBorderListener;
 import org.bukkit.*;
@@ -672,8 +683,50 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
         Preconditions.checkArgument(location.getWorld() != null, "location.world");
         location.checkFinite();
 
-        SpigotOnFabric.notImplemented();
-        return false;
+        final EntityPlayer entity = getHandle();
+
+        if (getHealth() == 0 || entity.isRemoved()) {
+            return false;
+        }
+
+        if (entity.connection == null) {
+            return false;
+        }
+
+        if (entity.isVehicle()) {
+            return false;
+        }
+
+        Location from = this.getLocation();
+        Location to = location;
+        final PlayerTeleportEvent event = new PlayerTeleportEvent(this, from, to, cause);
+        server.getPluginManager().callEvent(event);
+
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        entity.stopRiding();
+
+        if (this.isSleeping()) {
+            this.wakeup(false);
+        }
+
+        from = event.getFrom();
+        to = event.getTo();
+        final WorldServer fromWorld = ((FabricWorld)from.getWorld()).getHandle();
+        final WorldServer toWorld = ((FabricWorld)to.getWorld()).getHandle();
+
+        if (getHandle().containerMenu != getHandle().inventoryMenu) {
+            getHandle().closeContainer();
+        }
+
+        if (fromWorld == toWorld) {
+            ((PlayerConnectionExt)entity.connection).sof$teleport(to);
+        } else {
+            throw SpigotOnFabric.notImplemented();
+        }
+        return true;
     }
 
     @Override
@@ -736,7 +789,16 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
 
     @Override
     public void setBedSpawnLocation(@Nullable Location location, boolean force) {
-        SpigotOnFabric.notImplemented();
+        if (location == null) {
+            getHandle().setRespawnPosition(null, null, 0f, force, false /*, PlayerSpawnChangeEvent.Cause.PLUGIN */);
+        } else {
+            getHandle().setRespawnPosition(
+                ((FabricWorld)location.getWorld()).getHandle().dimension(),
+                FabricLocation.toBlockPosition(location),
+                location.getYaw(), force, false
+                /*, PlayerSpawnChangeEvent.Cause.PLUGIN */
+            );
+        }
     }
 
     @Override
@@ -985,7 +1047,9 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     @Override
     public void setGameMode(@NotNull GameMode mode) {
         Preconditions.checkArgument(mode != null, "GameMode cannot be null");
-        SpigotOnFabric.notImplemented();
+        if (getHandle().connection == null) return;
+
+        getHandle().setGameMode(EnumGamemode.byId(mode.getValue()));
     }
 
     @Override
@@ -1020,7 +1084,7 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     public void setExp(float exp) {
         Preconditions.checkArgument(exp >= 0.0 && exp <= 1.0, "Experience progress must be between 0.0 and 1.0 (%s)", exp);
         getHandle().experienceProgress = exp;
-        SpigotOnFabric.notImplemented();
+        getHandle().lastSentExp = -1;
     }
 
     @Override
@@ -1032,7 +1096,7 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     public void setLevel(int level) {
         Preconditions.checkArgument(level >= 0, "Experience level must not be negative (%s)", level);
         getHandle().experienceLevel = level;
-        SpigotOnFabric.notImplemented();
+        getHandle().lastSentExp = -1;
     }
 
     @Override
@@ -1723,8 +1787,11 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     public org.bukkit.advancement.AdvancementProgress getAdvancementProgress(@NotNull Advancement advancement) {
         Preconditions.checkArgument(advancement != null, "advancement");
 
-        SpigotOnFabric.notImplemented();
-        return null;
+        final FabricAdvancement fabric = (FabricAdvancement)advancement;
+        final AdvancementDataPlayer data = getHandle().getAdvancements();
+        final AdvancementProgress progress = data.getOrStartProgress(fabric.getHandle());
+
+        return new FabricAdvancementProgress(fabric, data, progress);
     }
 
     @Override
@@ -1783,6 +1850,24 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     }
 
     private final Player.Spigot spigot = new Player.Spigot() {
+        @Override
+        public void respawn() {
+            if (getHealth() <= 0 && isOnline()) {
+                server.getServer().getPlayerList().respawn(getHandle(), false /*, PlayerRespawnEvent.RespawnReason.PLUGIN */);
+            }
+        }
+
+        @Override
+        public void sendMessage(@NotNull ChatMessageType position, @NotNull BaseComponent... components) {
+            this.sendMessage(position, null, components);
+        }
+
+        @Override
+        public void sendMessage(@NotNull ChatMessageType position, @Nullable UUID sender, @NotNull BaseComponent... components) {
+            if (getHandle().connection == null) return;
+
+            getHandle().connection.send(SOFConstructors.newClientboundSystemChatPacket(components, position == ChatMessageType.ACTION_BAR));
+        }
     };
 
     @Override

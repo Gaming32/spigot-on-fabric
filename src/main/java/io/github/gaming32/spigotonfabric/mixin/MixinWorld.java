@@ -34,8 +34,9 @@ public class MixinWorld implements WorldExt {
         method = "<init>",
         at = @At(
             value = "FIELD",
-            target = "Lnet/minecraft/world/level/World;profiler:Ljava/util/function/Supplier;",
-            opcode = Opcodes.PUTFIELD
+            target = "Lnet/minecraft/world/level/World;levelData:Lnet/minecraft/world/level/storage/WorldDataMutable;",
+            opcode = Opcodes.PUTFIELD,
+            shift = At.Shift.AFTER
         )
     )
     private void setupBukkitWorld(WorldDataMutable levelData, ResourceKey<World> dimension, IRegistryCustom registryAccess, Holder<DimensionManager> dimensionTypeRegistration, Supplier<GameProfilerFiller> profiler, boolean isClientSide, boolean isDebug, long biomeZoomSeed, int maxChainedNeighborUpdates, CallbackInfo ci) {

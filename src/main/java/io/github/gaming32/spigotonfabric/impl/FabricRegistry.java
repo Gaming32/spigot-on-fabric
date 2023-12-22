@@ -1,10 +1,17 @@
 package io.github.gaming32.spigotonfabric.impl;
 
 import com.google.common.base.Preconditions;
-import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.impl.enchantments.FabricEnchantment;
+import io.github.gaming32.spigotonfabric.impl.generator.structure.FabricStructure;
+import io.github.gaming32.spigotonfabric.impl.generator.structure.FabricStructureType;
+import io.github.gaming32.spigotonfabric.impl.inventory.trim.FabricTrimMaterial;
+import io.github.gaming32.spigotonfabric.impl.inventory.trim.FabricTrimPattern;
+import io.github.gaming32.spigotonfabric.impl.potion.FabricPotionEffectType;
 import io.github.gaming32.spigotonfabric.impl.util.FabricNamespacedKey;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import org.bukkit.GameEvent;
 import org.bukkit.Keyed;
@@ -42,7 +49,9 @@ public class FabricRegistry<B extends Keyed, M> implements Registry<B> {
     }
 
     public static void setMinecraftRegistry(IRegistryCustom registry) {
-        Preconditions.checkState(FabricRegistry.registry == null, "Registry already set");
+        if (registry != null) {
+            Preconditions.checkState(FabricRegistry.registry == null, "Registry already set");
+        }
         FabricRegistry.registry = registry;
     }
 
@@ -56,36 +65,28 @@ public class FabricRegistry<B extends Keyed, M> implements Registry<B> {
 
     public static <B extends Keyed> Registry<?> createRegistry(Class<B> bukkitClass, IRegistryCustom registryHolder) {
         if (bukkitClass == Enchantment.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(Enchantment.class, registryHolder.registryOrThrow(Registries.ENCHANTMENT), FabricEnchantment::new);
         }
         if (bukkitClass == GameEvent.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(GameEvent.class, registryHolder.registryOrThrow(Registries.GAME_EVENT), FabricGameEvent::new);
         }
         if (bukkitClass == MusicInstrument.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(MusicInstrument.class, registryHolder.registryOrThrow(Registries.INSTRUMENT), FabricMusicInstrument::new);
         }
         if (bukkitClass == PotionEffectType.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(PotionEffectType.class, registryHolder.registryOrThrow(Registries.MOB_EFFECT), FabricPotionEffectType::new);
         }
         if (bukkitClass == Structure.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(Structure.class, registryHolder.registryOrThrow(Registries.STRUCTURE), FabricStructure::new);
         }
         if (bukkitClass == StructureType.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(StructureType.class, BuiltInRegistries.STRUCTURE_TYPE, FabricStructureType::new);
         }
         if (bukkitClass == TrimMaterial.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(TrimMaterial.class, registryHolder.registryOrThrow(Registries.TRIM_MATERIAL), FabricTrimMaterial::new);
         }
         if (bukkitClass == TrimPattern.class) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return new FabricRegistry<>(TrimPattern.class, registryHolder.registryOrThrow(Registries.TRIM_PATTERN), FabricTrimPattern::new);
         }
 
         return null;
@@ -110,8 +111,14 @@ public class FabricRegistry<B extends Keyed, M> implements Registry<B> {
             return get(key);
         }
 
-        SpigotOnFabric.notImplemented();
-        return null;
+        final B bukkit = createBukkit(key, minecraftRegistry.getOptional(FabricNamespacedKey.toMinecraft(key)).orElse(null));
+        if (bukkit == null) {
+            return null;
+        }
+
+        cache.put(key, bukkit);
+
+        return bukkit;
     }
 
     @NotNull

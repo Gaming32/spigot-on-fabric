@@ -2,6 +2,7 @@ package io.github.gaming32.spigotonfabric.impl;
 
 import com.google.common.base.Preconditions;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricEntity;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.core.Holder;
@@ -236,8 +237,15 @@ public abstract class FabricRegionAccessor implements RegionAccessor {
     public List<Entity> getEntities() {
         final List<Entity> list = new ArrayList<>();
 
-        SpigotOnFabric.notImplemented();
-        return null;
+        getNMSEntities().forEach(entity -> {
+            final Entity bukkitEntity = ((EntityExt)entity).sof$getBukkitEntity();
+
+            if (bukkitEntity != null && (!isNormalWorld() || bukkitEntity.isValid())) {
+                list.add(bukkitEntity);
+            }
+        });
+
+        return list;
     }
 
     @NotNull

@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import io.github.gaming32.spigotonfabric.ext.PlayerConnectionExt;
 import io.github.gaming32.spigotonfabric.ext.ServerCommonPacketListenerImplExt;
 import io.github.gaming32.spigotonfabric.impl.util.LazyPlayerSet;
 import net.minecraft.network.chat.LastSeenMessages;
@@ -12,7 +13,9 @@ import net.minecraft.network.chat.SignableCommand;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.world.entity.RelativeMovement;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,12 +25,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 @Mixin(PlayerConnection.class)
-public abstract class MixinPlayerConnection implements ServerCommonPacketListenerImplExt {
+public abstract class MixinPlayerConnection implements ServerCommonPacketListenerImplExt, PlayerConnectionExt {
     @Shadow public EntityPlayer player;
 
-    //region performChatCommand
+    @Shadow public abstract void teleport(double x, double y, double z, float yaw, float pitch, Set<RelativeMovement> relativeSet);
+
     @Inject(method = "performChatCommand", at = @At("HEAD"), cancellable = true)
     private void callBukkitCommandPreprocessEvent(
         ServerboundChatCommandPacket packet, LastSeenMessages lastSeenMessages, CallbackInfo ci,
@@ -81,5 +86,9 @@ public abstract class MixinPlayerConnection implements ServerCommonPacketListene
         }
         return original.call(instance, packet, command, lastSeenMessages);
     }
-    //endregion
+
+    @Override
+    public void sof$teleport(Location dest) {
+        teleport(dest.getX(), dest.getY(), dest.getZ(), dest.getYaw(), dest.getPitch(), Collections.emptySet());
+    }
 }

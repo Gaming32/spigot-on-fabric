@@ -3,13 +3,19 @@ package io.github.gaming32.spigotonfabric.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.github.gaming32.spigotonfabric.SOFTicketTypes;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.ChunkProviderServerExt;
+import io.github.gaming32.spigotonfabric.ext.EntityExt;
+import io.github.gaming32.spigotonfabric.ext.EntityPlayerExt;
 import io.github.gaming32.spigotonfabric.ext.WorldServerExt;
+import io.github.gaming32.spigotonfabric.impl.block.FabricBlock;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricEntity;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
 import io.github.gaming32.spigotonfabric.impl.metadata.BlockMetadataStore;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataContainer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataTypeRegistry;
+import io.github.gaming32.spigotonfabric.impl.util.FabricLocation;
 import io.github.gaming32.spigotonfabric.impl.util.FabricNamespacedKey;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -21,6 +27,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutEntitySound;
 import net.minecraft.network.protocol.game.PacketPlayOutNamedSoundEffect;
+import net.minecraft.network.protocol.game.PacketPlayOutUpdateTime;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.ChunkMapDistance;
 import net.minecraft.server.level.EntityPlayer;
@@ -30,6 +37,7 @@ import net.minecraft.server.level.Ticket;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.sounds.SoundEffect;
 import net.minecraft.util.ArraySetSorted;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.EntityLightning;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.player.EntityHuman;
@@ -42,6 +50,7 @@ import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.IChunkAccess;
 import net.minecraft.world.level.chunk.ProtoChunkExtension;
+import net.minecraft.world.level.storage.IWorldDataServer;
 import net.minecraft.world.phys.AxisAlignedBB;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
@@ -93,6 +102,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
     private final BlockMetadataStore blockMetadata = new BlockMetadataStore(this);
     private final Object2IntOpenHashMap<SpawnCategory> spawnCategoryLimit = new Object2IntOpenHashMap<>();
     private final FabricPersistentDataContainer persistentDataContainer = new FabricPersistentDataContainer(DATA_TYPE_REGISTRY);
+    private final String name;
 
     public FabricWorld(WorldServer world, ChunkGenerator gen, BiomeProvider biomeProvider, Environment env) {
         this.world = world;
@@ -100,13 +110,27 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         this.biomeProvider = biomeProvider;
 
         environment = env;
+
+        // serverLevelData isn't initialized yet
+        final String baseName = ((IWorldDataServer)world.getLevelData()).getLevelName();
+        final var dimensionKey = world.dimension();
+        if (dimensionKey == net.minecraft.world.level.World.OVERWORLD) {
+            name = baseName;
+        } else {
+            final String suffix;
+            if (env == Environment.CUSTOM) {
+                suffix = dimensionKey.location().getNamespace() + "_" + dimensionKey.location().getPath();
+            } else {
+                suffix = environment.toString().toLowerCase(); // CraftBukkit doesn't use ROOT, match that behavior
+            }
+            name = baseName + "_" + suffix;
+        }
     }
 
     @NotNull
     @Override
     public Block getBlockAt(int x, int y, int z) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return FabricBlock.at(world, new BlockPosition(x, y, z));
     }
 
     @NotNull
@@ -114,8 +138,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
     public Location getSpawnLocation() {
         final BlockPosition spawn = world.getSharedSpawnPos();
         final float yaw = world.getSharedSpawnAngle();
-        SpigotOnFabric.notImplemented();
-        return null;
+        return FabricLocation.toBukkit(spawn, this, yaw, 0);
     }
 
     @Override
@@ -145,8 +168,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
     @Override
     public Chunk getChunkAt(int x, int z) {
         final var chunk = (net.minecraft.world.level.chunk.Chunk)this.world.getChunk(x, z, ChunkStatus.FULL, true);
-        SpigotOnFabric.notImplemented();
-        return null;
+        return new FabricChunk(chunk);
     }
 
     @NotNull
@@ -170,8 +192,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
 
     @Override
     public boolean isChunkLoaded(int x, int z) {
-        SpigotOnFabric.notImplemented();
-        return false;
+        return ((ChunkProviderServerExt)world.getChunkSource()).sof$isChunkLoaded(x, z);
     }
 
     @Override
@@ -275,8 +296,8 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         }
 
         if (chunk instanceof net.minecraft.world.level.chunk.Chunk) {
-            SpigotOnFabric.notImplemented();
-            return false;
+            world.getChunkSource().addRegionTicket(SOFTicketTypes.PLUGIN, new ChunkCoordIntPair(x, z), 1, Unit.INSTANCE);
+            return true;
         }
 
         return false;
@@ -491,7 +512,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
     @NotNull
     @Override
     public String getName() {
-        return world.serverLevelData.getLevelName();
+        return name;
     }
 
     @NotNull
@@ -544,7 +565,13 @@ public class FabricWorld extends FabricRegionAccessor implements World {
 
         for (final Player p : getPlayers()) {
             final FabricPlayer cp = (FabricPlayer)p;
-            SpigotOnFabric.notImplemented();
+            if (cp.getHandle().connection == null) continue;
+
+            cp.getHandle().connection.send(new PacketPlayOutUpdateTime(
+                cp.getHandle().level().getGameTime(),
+                ((EntityPlayerExt)cp.getHandle()).sof$getPlayerTime(cp.getHandle().level().getDayTime()),
+                cp.getHandle().level().getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
+            ));
         }
     }
 
@@ -647,8 +674,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
 
     @Override
     public int getHighestBlockYAt(int x, int z, @NotNull HeightMap heightMap) {
-        SpigotOnFabric.notImplemented();
-        return 0;
+        return world.getChunk(x >> 4, z >> 4).getHeight(FabricHeightMap.toNMS(heightMap), x, z);
     }
 
     @NotNull
@@ -718,8 +744,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
 
     @Override
     public Iterable<net.minecraft.world.entity.Entity> getNMSEntities() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return getHandle().getEntities().getAll();
     }
 
     @Override
@@ -906,7 +931,11 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         final List<Player> list = new ArrayList<>(world.players().size());
 
         for (final EntityHuman human : world.players()) {
-            SpigotOnFabric.notImplemented();
+            final HumanEntity bukkitEntity = (HumanEntity)((EntityExt)human).sof$getBukkitEntity();
+
+            if (bukkitEntity != null && bukkitEntity instanceof Player player) {
+                list.add(player);
+            }
         }
 
         return list;

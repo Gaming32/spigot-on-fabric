@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
+import io.github.gaming32.spigotonfabric.impl.util.FabricChatMessage;
 import net.minecraft.world.scores.ScoreHolder;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.scores.ScoreboardObjective;
@@ -57,8 +58,13 @@ public final class FabricScoreboard implements org.bukkit.scoreboard.Scoreboard 
         Preconditions.checkArgument(name.length() <= Short.MAX_VALUE, "The name '%s' is longer than the limit of 32767 characters (%s)", name, name.length());
         Preconditions.checkArgument(board.getObjective(name) == null, "An objective of name '%s' already exists", name);
 
-        SpigotOnFabric.notImplemented();
-        return null;
+        final ScoreboardObjective objective = board.addObjective(
+            name, ((FabricCriteria)criteria).criteria,
+            FabricChatMessage.fromStringOrNull(displayName),
+            FabricScoreboardTranslations.fromBukkitRender(renderType),
+            true, null
+        );
+        return new FabricObjective(this, objective);
     }
 
     @Nullable

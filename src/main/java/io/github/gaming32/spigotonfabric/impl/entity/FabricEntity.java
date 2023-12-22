@@ -2,9 +2,12 @@ package io.github.gaming32.spigotonfabric.impl.entity;
 
 import com.google.common.base.Preconditions;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.EntityExt;
+import io.github.gaming32.spigotonfabric.ext.WorldExt;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataContainer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataTypeRegistry;
+import io.github.gaming32.spigotonfabric.impl.util.FabricLocation;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -92,8 +95,7 @@ public class FabricEntity implements org.bukkit.entity.Entity {
     @NotNull
     @Override
     public Location getLocation() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return FabricLocation.toBukkit(entity.position(), getWorld(), ((EntityExt)entity).sof$getBukkitYaw(), entity.getXRot());
     }
 
     @Nullable
@@ -159,8 +161,7 @@ public class FabricEntity implements org.bukkit.entity.Entity {
     @NotNull
     @Override
     public World getWorld() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return ((WorldExt)entity.level()).sof$getWorld();
     }
 
     @Override
@@ -289,8 +290,8 @@ public class FabricEntity implements org.bukkit.entity.Entity {
 
     @Override
     public boolean isValid() {
-        SpigotOnFabric.notImplemented();
-        return false;
+        final EntityExt ext = (EntityExt)entity;
+        return entity.isAlive() && ext.sof$isValid() && ext.sof$isChunkLoaded() && isInWorld();
     }
 
     @NotNull
@@ -385,7 +386,7 @@ public class FabricEntity implements org.bukkit.entity.Entity {
 
     @Override
     public void setFallDistance(float distance) {
-        SpigotOnFabric.notImplemented();
+        getHandle().fallDistance = distance;
     }
 
     @Override
@@ -786,8 +787,7 @@ public class FabricEntity implements org.bukkit.entity.Entity {
 
     @Override
     public boolean isInWorld() {
-        SpigotOnFabric.notImplemented();
-        return false;
+        return ((EntityExt)getHandle()).sof$isInWorld();
     }
 
     @Nullable

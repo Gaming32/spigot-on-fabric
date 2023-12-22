@@ -44,10 +44,7 @@ public class SpigotOnFabric implements ModInitializer {
 
         server = new FabricServer();
         ServerLifecycleEvents.SERVER_STARTING.register(server::setServer);
-        ServerLifecycleEvents.SERVER_STOPPED.register(ignored -> {
-            server.setServer(null);
-            server.clearWorlds();
-        });
+        ServerLifecycleEvents.SERVER_STOPPED.register(ignored -> server.setServer(null));
 
         S2CPlayChannelEvents.REGISTER.register((handler, sender, server1, channels) -> channels.stream()
             .map(MinecraftKey::toString)
@@ -60,7 +57,7 @@ public class SpigotOnFabric implements ModInitializer {
     }
 
     @Contract("-> fail")
-    public static void notImplemented() {
+    public static RuntimeException notImplemented() {
         final Throwable stackTraceGetter = new Throwable();
         final StackTraceElement caller = stackTraceGetter.getStackTrace()[1];
         final String className = caller.getClassName();

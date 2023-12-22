@@ -2,6 +2,7 @@ package io.github.gaming32.spigotonfabric.impl.inventory;
 
 import com.google.common.base.Preconditions;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.IInventoryExt;
 import io.github.gaming32.spigotonfabric.impl.legacy.FabricLegacy;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.entity.player.PlayerInventory;
@@ -96,7 +97,7 @@ public class FabricInventory implements Inventory {
 
     @Override
     public void setItem(int index, @Nullable ItemStack item) {
-        SpigotOnFabric.notImplemented();
+        getInventory().setItem(index, FabricItemStack.asNMSCopy(item));
     }
 
     @Override
@@ -451,8 +452,7 @@ public class FabricInventory implements Inventory {
     @Nullable
     @Override
     public InventoryHolder getHolder() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return ((IInventoryExt)inventory).sof$getOwner();
     }
 
     @Override

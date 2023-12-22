@@ -7,16 +7,18 @@ import net.minecraft.core.BlockPosition;
 import net.minecraft.core.EnumDirection;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.decoration.EntityHanging;
+import net.minecraft.world.entity.item.EntityFallingBlock;
+import net.minecraft.world.entity.item.EntityItem;
 import net.minecraft.world.entity.projectile.EntityFireball;
+import net.minecraft.world.entity.vehicle.EntityMinecartChest;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GeneratorAccessSeed;
 import net.minecraft.world.level.World;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Hanging;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.entity.minecart.StorageMinecart;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.slf4j.Logger;
 
@@ -82,6 +84,39 @@ public final class FabricEntityTypes {
     static {
         // Living
         // TODO
+        register(new EntityTypeData<>(EntityType.ZOMBIE_VILLAGER, ZombieVillager.class, FabricVillagerZombie::new, createLiving(EntityTypes.ZOMBIE_VILLAGER)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.CREEPER, Creeper.class, FabricCreeper::new, createLiving(EntityTypes.CREEPER)));
+        register(new EntityTypeData<>(EntityType.SKELETON, Skeleton.class, FabricSkeleton::new, createLiving(EntityTypes.SKELETON)));
+        register(new EntityTypeData<>(EntityType.SPIDER, Spider.class, FabricSpider::new, createLiving(EntityTypes.SPIDER)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.ZOMBIE, Zombie.class, FabricZombie::new, createLiving(EntityTypes.ZOMBIE)));
+        register(new EntityTypeData<>(EntityType.SLIME, Slime.class, FabricSlime::new, createLiving(EntityTypes.SLIME)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.ENDERMAN, Enderman.class, FabricEnderman::new, createLiving(EntityTypes.ENDERMAN)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.BAT, Bat.class, FabricBat::new, createLiving(EntityTypes.BAT)));
+        register(new EntityTypeData<>(EntityType.WITCH, Witch.class, FabricWitch::new, createLiving(EntityTypes.WITCH)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.PIG, Pig.class, FabricPig::new, createLiving(EntityTypes.PIG)));
+        register(new EntityTypeData<>(EntityType.SHEEP, Sheep.class, FabricSheep::new, createLiving(EntityTypes.SHEEP)));
+        register(new EntityTypeData<>(EntityType.COW, Cow.class, FabricCow::new, createLiving(EntityTypes.COW)));
+        register(new EntityTypeData<>(EntityType.CHICKEN, Chicken.class, FabricChicken::new, createLiving(EntityTypes.CHICKEN)));
+        register(new EntityTypeData<>(EntityType.SQUID, Squid.class, FabricSquid::new, createLiving(EntityTypes.SQUID)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.PARROT, Parrot.class, FabricParrot::new, createLiving(EntityTypes.PARROT)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.COD, Cod.class, FabricCod::new, createLiving(EntityTypes.COD)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.PUFFERFISH, PufferFish.class, FabricPufferFish::new, createLiving(EntityTypes.PUFFERFISH)));
+        register(new EntityTypeData<>(EntityType.TROPICAL_FISH, TropicalFish.class, FabricTropicalFish::new, createLiving(EntityTypes.TROPICAL_FISH)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.DROWNED, Drowned.class, FabricDrowned::new, createLiving(EntityTypes.DROWNED)));
+        register(new EntityTypeData<>(EntityType.DOLPHIN, Dolphin.class, FabricDolphin::new, createLiving(EntityTypes.DOLPHIN)));
+        // TODO
+        register(new EntityTypeData<>(EntityType.AXOLOTL, Axolotl.class, FabricAxolotl::new, createLiving(EntityTypes.AXOLOTL)));
+        register(new EntityTypeData<>(EntityType.GLOW_SQUID, GlowSquid.class, FabricGlowSquid::new, createLiving(EntityTypes.GLOW_SQUID)));
+        // TODO
 
         // TODO
 
@@ -101,6 +136,24 @@ public final class FabricEntityTypes {
         // TODO
 
         // MISC
+        register(new EntityTypeData<>(EntityType.DROPPED_ITEM, Item.class, FabricItem::new, spawnData -> {
+            System.out.println(ItemStack.class);
+            final var itemStack = new net.minecraft.world.item.ItemStack(Items.STONE);
+            final EntityItem item = new EntityItem(spawnData.minecraftWorld(), spawnData.x(), spawnData.y(), spawnData.z(), itemStack);
+            item.setPickUpDelay(10);
+
+            return item;
+        }));
+        // TODO
+        register(new EntityTypeData<>(EntityType.FALLING_BLOCK, FallingBlock.class, FabricFallingBlock::new, spawnData -> {
+            final BlockPosition pos = BlockPosition.containing(spawnData.x(), spawnData.y(), spawnData.z());
+            return EntityFallingBlock.fall(spawnData.minecraftWorld(), pos, spawnData.world.getBlockState(pos));
+        }));
+        // TODO
+        register(new EntityTypeData<>(
+            EntityType.MINECART_CHEST, StorageMinecart.class, FabricMinecartChest::new,
+            spawnData -> new EntityMinecartChest(spawnData.minecraftWorld(), spawnData.x(), spawnData.y(), spawnData.z())
+        ));
         // TODO
 
         // None spawn able

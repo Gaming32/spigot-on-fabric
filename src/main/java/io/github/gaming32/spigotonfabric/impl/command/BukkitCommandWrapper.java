@@ -8,7 +8,6 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.ext.CommandListenerWrapperExt;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import net.minecraft.commands.CommandListenerWrapper;
@@ -16,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.logging.Level;
@@ -63,7 +63,15 @@ public class BukkitCommandWrapper implements com.mojang.brigadier.Command<Comman
 
     @Override
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<CommandListenerWrapper> context, SuggestionsBuilder builder) throws CommandSyntaxException {
-        SpigotOnFabric.notImplemented();
-        return null;
+        List<String> results = server.tabComplete(((CommandListenerWrapperExt)context.getSource()).sof$getBukkitSender(), builder.getInput(), context.getSource().getLevel(), context.getSource().getPosition(), true);
+
+        // Defaults to sub nodes, but we have just one giant args node, so offset accordingly
+        builder = builder.createOffset(builder.getInput().lastIndexOf(' ') + 1);
+
+        for (String s : results) {
+            builder.suggest(s);
+        }
+
+        return builder.buildFuture();
     }
 }

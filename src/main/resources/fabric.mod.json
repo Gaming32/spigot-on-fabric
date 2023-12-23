@@ -17,7 +17,8 @@
     ]
   },
   "mixins": [
-    "spigot-on-fabric.mixins.json"
+    "spigot-on-fabric.mixins.json",
+    "sof-events.mixins.json"
   ],
   "accessWidener": "spigot-on-fabric.accessWidener",
   "depends": {

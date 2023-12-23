@@ -10,4 +10,8 @@ public interface EntityPlayerExt {
     void sof$setRelativeTime(boolean relativeTime);
 
     long sof$getPlayerTime(long baseDayTime);
+
+    boolean sof$isKeepLevel();
+
+    void sof$setKeepLevel(boolean keepLevel);
 }

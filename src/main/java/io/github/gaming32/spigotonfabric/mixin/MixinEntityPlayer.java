@@ -8,6 +8,9 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(EntityPlayer.class)
 public class MixinEntityPlayer implements EntityPlayerExt {
     @Unique
+    private boolean sof$keepLevel = false;
+
+    @Unique
     private long sof$timeOffset = 0L;
     @Unique
     private boolean sof$relativeTime = true;
@@ -39,5 +42,15 @@ public class MixinEntityPlayer implements EntityPlayerExt {
         } else {
             return baseDayTime - baseDayTime % 24000 + sof$timeOffset;
         }
+    }
+
+    @Override
+    public boolean sof$isKeepLevel() {
+        return sof$keepLevel;
+    }
+
+    @Override
+    public void sof$setKeepLevel(boolean keepLevel) {
+        sof$keepLevel = keepLevel;
     }
 }

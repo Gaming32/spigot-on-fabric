@@ -192,3 +192,5 @@ accessible	field	net/minecraft/world/entity/projectile/EntityFishingHook	DATA_HO
 accessible	method	net/minecraft/world/entity/projectile/EntityFishingHook	pullEntity	(Lnet/minecraft/world/entity/Entity;)V
 accessible	field	net/minecraft/world/entity/projectile/EntityFishingHook	currentState	Lnet/minecraft/world/entity/projectile/EntityFishingHook$HookState;
 accessible	class	net/minecraft/world/entity/projectile/EntityFishingHook$HookState
+accessible	field	net/minecraft/world/entity/animal/goat/Goat	DATA_HAS_LEFT_HORN	Lnet/minecraft/network/syncher/DataWatcherObject;
+accessible	field	net/minecraft/world/entity/animal/goat/Goat	DATA_HAS_RIGHT_HORN	Lnet/minecraft/network/syncher/DataWatcherObject;

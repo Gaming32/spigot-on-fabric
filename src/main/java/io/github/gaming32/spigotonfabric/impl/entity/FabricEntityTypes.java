@@ -182,7 +182,7 @@ public final class FabricEntityTypes {
         register(new EntityTypeData<>(EntityType.PIGLIN_BRUTE, PiglinBrute.class, FabricPiglinBrute::new, createLiving(EntityTypes.PIGLIN_BRUTE)));
         register(new EntityTypeData<>(EntityType.AXOLOTL, Axolotl.class, FabricAxolotl::new, createLiving(EntityTypes.AXOLOTL)));
         register(new EntityTypeData<>(EntityType.GLOW_SQUID, GlowSquid.class, FabricGlowSquid::new, createLiving(EntityTypes.GLOW_SQUID)));
-        register(new EntityTypeData<>(EntityType.GOAT, GlowSquid.class, FabricGlowSquid::new, createLiving(EntityTypes.GLOW_SQUID)));
+        register(new EntityTypeData<>(EntityType.GOAT, Goat.class, FabricGoat::new, createLiving(EntityTypes.GOAT)));
         register(new EntityTypeData<>(EntityType.ALLAY, Allay.class, FabricAllay::new, createLiving(EntityTypes.ALLAY)));
         register(new EntityTypeData<>(EntityType.FROG, Frog.class, FabricFrog::new, createLiving(EntityTypes.FROG)));
         register(new EntityTypeData<>(EntityType.TADPOLE, Tadpole.class, FabricTadpole::new, createLiving(EntityTypes.TADPOLE)));

@@ -12,6 +12,7 @@
     "MixinDedicatedServer",
     "MixinEntity",
     "MixinEntityArmorStand",
+    "MixinEntityEnderDragon",
     "MixinEntityLiving",
     "MixinEntityMinecartCommandBlock_a",
     "MixinEntityPlayer",

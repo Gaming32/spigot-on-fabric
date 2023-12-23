@@ -9,6 +9,7 @@ import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.ext.PlayerConnectionExt;
 import io.github.gaming32.spigotonfabric.impl.FabricOfflinePlayer;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
+import io.github.gaming32.spigotonfabric.impl.FabricSound;
 import io.github.gaming32.spigotonfabric.impl.FabricWorld;
 import io.github.gaming32.spigotonfabric.impl.FabricWorldBorder;
 import io.github.gaming32.spigotonfabric.impl.advancement.FabricAdvancement;
@@ -34,6 +35,7 @@ import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
 import net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutGameStateChange;
+import net.minecraft.network.protocol.game.PacketPlayOutNamedSoundEffect;
 import net.minecraft.network.protocol.game.PacketPlayOutUpdateHealth;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.AdvancementDataPlayer;
@@ -367,7 +369,9 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
 
     @Override
     public void playSound(@NotNull Location loc, @NotNull Sound sound, org.bukkit.@NotNull SoundCategory category, float volume, float pitch, long seed) {
-        SpigotOnFabric.notImplemented();
+        if (loc == null || sound == null || category == null || getHandle().connection == null) return;
+
+        playSound0(loc, FabricSound.bukkitToMinecraftHolder(sound), net.minecraft.sounds.SoundCategory.valueOf(category.name()), volume, pitch, seed);
     }
 
     @Override
@@ -378,7 +382,12 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     private void playSound0(Location loc, Holder<SoundEffect> soundEffectHolder, net.minecraft.sounds.SoundCategory categoryNMS, float volume, float pitch, long seed) {
         Preconditions.checkArgument(loc != null, "Location cannot be null");
 
-        SpigotOnFabric.notImplemented();
+        if (getHandle().connection == null) return;
+
+        final PacketPlayOutNamedSoundEffect packet = new PacketPlayOutNamedSoundEffect(
+            soundEffectHolder, categoryNMS, loc.getX(), loc.getY(), loc.getZ(), volume, pitch, seed
+        );
+        getHandle().connection.send(packet);
     }
 
     @Override

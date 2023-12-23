@@ -4,9 +4,11 @@
   "package": "io.github.gaming32.spigotonfabric.eventimpl.mixin",
   "compatibilityLevel": "JAVA_17",
   "plugin": "io.github.gaming32.spigotonfabric.eventimpl.EventImplPlugin",
-  "verbose": true,
   "mixins": [
     "entity.EntityAirChangeEventMixin",
+    "entity.both.PlayerDeathEventMixin",
+    "inventory.full.InventoryCloseEventMixin",
+    "inventory.partial.InventoryCloseEventMixin",
     "player.PlayerCommandPreprocessEventMixin",
     "vehicle.VehicleEnterEventMixin"
   ],

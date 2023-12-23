@@ -8,8 +8,13 @@ import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.World;
+import org.bukkit.inventory.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(EntityLiving.class)
 public abstract class MixinEntityLiving extends Entity implements EntityExt, EntityLivingExt {
@@ -17,6 +22,7 @@ public abstract class MixinEntityLiving extends Entity implements EntityExt, Ent
         super(entityType, level);
     }
 
+    @Override
     @Shadow public abstract float getYHeadRot();
 
     @Shadow public abstract boolean wasExperienceConsumed();
@@ -27,9 +33,12 @@ public abstract class MixinEntityLiving extends Entity implements EntityExt, Ent
 
     @Shadow public abstract boolean shouldDropExperience();
 
-    @Shadow public abstract int getUseItemRemainingTicks();
-
     @Shadow public abstract int getExperienceReward();
+
+    @Unique
+    private boolean sof$captureDrops;
+    @Unique
+    private final List<ItemStack> sof$capturedDrops = new ArrayList<>();
 
     @Override
     public float sof$getBukkitYaw() {
@@ -47,5 +56,20 @@ public abstract class MixinEntityLiving extends Entity implements EntityExt, Ent
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public boolean sof$isCaptureDrops() {
+        return sof$captureDrops;
+    }
+
+    @Override
+    public void sof$setCaptureDrops(boolean captureDrops) {
+        sof$captureDrops = captureDrops;
+    }
+
+    @Override
+    public List<ItemStack> sof$getCapturedDrops() {
+        return sof$capturedDrops;
     }
 }

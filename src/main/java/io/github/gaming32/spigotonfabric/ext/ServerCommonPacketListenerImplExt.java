@@ -4,4 +4,6 @@ import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
 
 public interface ServerCommonPacketListenerImplExt {
     FabricPlayer sof$getFabricPlayer();
+
+    boolean sof$isDisconnected();
 }

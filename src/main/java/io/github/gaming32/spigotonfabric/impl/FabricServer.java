@@ -901,8 +901,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public ConsoleCommandSender getConsoleSender() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return ((MinecraftServerExt)console).sof$getConsole();
     }
 
     @NotNull

@@ -7,6 +7,7 @@ import com.mojang.logging.LogUtils;
 import io.github.gaming32.spigotonfabric.SOFConstructors;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.ext.PlayerConnectionExt;
+import io.github.gaming32.spigotonfabric.ext.ServerCommonPacketListenerImplExt;
 import io.github.gaming32.spigotonfabric.impl.FabricOfflinePlayer;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
 import io.github.gaming32.spigotonfabric.impl.FabricSound;
@@ -33,6 +34,8 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.protocol.common.ClientboundResourcePackPopPacket;
 import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
 import net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacket;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.PacketPlayOutGameStateChange;
 import net.minecraft.network.protocol.game.PacketPlayOutNamedSoundEffect;
@@ -1614,7 +1617,7 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
     public void setScoreboard(@NotNull Scoreboard scoreboard) throws IllegalArgumentException, IllegalStateException {
         Preconditions.checkArgument(scoreboard != null, "Scoreboard cannot be null");
         Preconditions.checkState(getHandle().connection != null, "Cannot set scoreboard yet (invalid player connection)");
-        SpigotOnFabric.notImplemented();
+        Preconditions.checkState(!((ServerCommonPacketListenerImplExt)getHandle().connection).sof$isDisconnected(), "Cannot set scoreboard for invalid CraftPlayer (player is disconnected)");
     }
 
     @Override
@@ -1717,11 +1720,13 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
         getHandle().connection.send(times);
 
         if (title != null) {
-            SpigotOnFabric.notImplemented();
+            final ClientboundSetTitleTextPacket packetTitle = new ClientboundSetTitleTextPacket(FabricChatMessage.fromString(title)[0]);
+            getHandle().connection.send(packetTitle);
         }
 
         if (subtitle != null) {
-            SpigotOnFabric.notImplemented();
+            final ClientboundSetSubtitleTextPacket packetSubtitle = new ClientboundSetSubtitleTextPacket(FabricChatMessage.fromString(subtitle)[0]);
+            getHandle().connection.send(packetSubtitle);
         }
     }
 

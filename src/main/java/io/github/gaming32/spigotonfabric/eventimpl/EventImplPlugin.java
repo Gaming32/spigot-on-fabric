@@ -1,6 +1,7 @@
 package io.github.gaming32.spigotonfabric.eventimpl;
 
 import net.fabricmc.loader.api.FabricLoader;
+import org.bukkit.event.Event;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -35,11 +36,17 @@ public class EventImplPlugin implements IMixinConfigPlugin {
         "off" events will never load their implementations and will never be fired.
         
         These toggles don't apply to events that are fired purely through API, such as Player.teleport triggering a PlayerTeleportEvent.
+        
+        Here's a list of every event that supports partial enablement:
+          - PlayerDeathEvent
+          - InventoryCloseEvent
         """;
 
-    private final Properties enabledEvents = new Properties();
+    private static final Properties ENABLED_EVENTS = new Properties();
+
+    private static Path enabledEventsPath;
+
     private String mixinPackage;
-    private Path enabledEventsPath;
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -50,7 +57,7 @@ public class EventImplPlugin implements IMixinConfigPlugin {
             .resolve("enabledEvents.properties");
         if (Files.exists(enabledEventsPath)) {
             try (InputStream is = Files.newInputStream(enabledEventsPath)) {
-                enabledEvents.load(is);
+                ENABLED_EVENTS.load(is);
             } catch (IOException e) {
                 LOGGER.error("Failed to load {}. Falling back to defaults.", enabledEventsPath, e);
             }
@@ -73,14 +80,13 @@ public class EventImplPlugin implements IMixinConfigPlugin {
             }
 
             final String eventName = getEventName(Annotations.getValue(eventInfoNode, "value"));
-            final EventMixinInfo.PartialMode partialMode = Annotations.getValue(
-                eventInfoNode, "partialMode", EventMixinInfo.PartialMode.class,
-                EventMixinInfo.PartialMode.NO_PARTIAL_SUPPORT
+            final PartialMode partialMode = Annotations.getValue(
+                eventInfoNode, "partialMode", PartialMode.class, PartialMode.NO_PARTIAL_SUPPORT
             );
             final EventEnableState defaultState = Annotations.getValue(
                 eventInfoNode, "defaultState", EventEnableState.class, EventEnableState.ON
             );
-            if (partialMode == EventMixinInfo.PartialMode.NO_PARTIAL_SUPPORT && defaultState == EventEnableState.PARTIAL) {
+            if (partialMode == PartialMode.NO_PARTIAL_SUPPORT && defaultState == EventEnableState.PARTIAL) {
                 LOGGER.warn("@EventMixinInfo for {} specifies incompatible NO_PARTIAL_SUPPORT and PARTIAL. Skipping load.", mixinClassName);
                 return false;
             }
@@ -112,24 +118,37 @@ public class EventImplPlugin implements IMixinConfigPlugin {
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
     }
 
-    private String getEventName(Type eventType) {
+    private static String getEventName(Type eventType) {
         String name = eventType.getInternalName();
         name = name.substring(name.lastIndexOf('/') + 1);
         return name.replace('$', '.');
     }
 
-    private boolean shouldBeEnabled(String eventName, EventMixinInfo.PartialMode partialMode, EventEnableState defaultState) {
+    public static boolean shouldBeEnabled(Class<? extends Event> event) {
+        return shouldBeEnabled(event, PartialMode.NO_PARTIAL_SUPPORT);
+    }
+
+    public static boolean shouldBeEnabled(Class<? extends Event> event, PartialMode partialMode) {
+        return shouldBeEnabled(event, partialMode, EventEnableState.ON);
+    }
+
+    public static boolean shouldBeEnabled(Class<? extends Event> event, PartialMode partialMode, EventEnableState defaultState) {
+        return shouldBeEnabled(getEventName(Type.getType(event)), partialMode, defaultState);
+    }
+
+    private static boolean shouldBeEnabled(String eventName, PartialMode partialMode, EventEnableState defaultState) {
         final EventEnableState state = getEnableState(eventName, partialMode, defaultState);
         return switch (partialMode) {
             case FOR_PARTIAL -> state == EventEnableState.PARTIAL;
+            case FOR_BOTH -> state != EventEnableState.OFF;
             case FOR_FULL, NO_PARTIAL_SUPPORT -> state == EventEnableState.ON;
         };
     }
 
-    private synchronized EventEnableState getEnableState(
-        String eventName, EventMixinInfo.PartialMode partialMode, EventEnableState defaultState
+    private static synchronized EventEnableState getEnableState(
+        String eventName, PartialMode partialMode, EventEnableState defaultState
     ) {
-        final String baseValue = enabledEvents.getProperty(eventName);
+        final String baseValue = ENABLED_EVENTS.getProperty(eventName);
         if (baseValue != null) {
             EventEnableState state = null;
             try {
@@ -138,22 +157,22 @@ public class EventImplPlugin implements IMixinConfigPlugin {
                 LOGGER.warn("Invalid setting for {}. Falling back to default ({}).", eventName, defaultState, e);
             }
             if (state != null) {
-                if (partialMode != EventMixinInfo.PartialMode.NO_PARTIAL_SUPPORT || state != EventEnableState.PARTIAL) {
+                if (partialMode != PartialMode.NO_PARTIAL_SUPPORT || state != EventEnableState.PARTIAL) {
                     return state;
                 }
                 LOGGER.warn("Partial enablement is not supported for the event {}. Falling back to default ({}).", eventName, defaultState);
             }
         }
-        enabledEvents.put(eventName, defaultState.name().toLowerCase(Locale.ROOT));
+        ENABLED_EVENTS.put(eventName, defaultState.name().toLowerCase(Locale.ROOT));
         save();
         return defaultState;
     }
 
-    private synchronized void save() {
+    private static synchronized void save() {
         try {
             Files.createDirectories(enabledEventsPath.getParent());
             try (OutputStream os = Files.newOutputStream(enabledEventsPath)) {
-                enabledEvents.store(os, COMMENTS);
+                ENABLED_EVENTS.store(os, COMMENTS);
             }
         } catch (IOException e) {
             LOGGER.error("Failed to save {}", enabledEventsPath, e);

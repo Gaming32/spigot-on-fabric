@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(EntityEnderDragon.class)
-public class MixinEntityEnderDragon extends EntityInsentient implements EntityLivingExt {
+public abstract class MixinEntityEnderDragon extends EntityInsentient implements EntityLivingExt {
     @Shadow @Nullable private EnderDragonBattle dragonFight;
 
     protected MixinEntityEnderDragon(EntityTypes<? extends EntityInsentient> entityType, World level) {

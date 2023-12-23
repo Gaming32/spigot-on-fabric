@@ -4,6 +4,7 @@ import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.ext.WorldServerExt;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
+import io.github.gaming32.spigotonfabric.impl.event.FabricEventFactory;
 import io.github.gaming32.spigotonfabric.impl.scoreboard.FabricScoreboardManager;
 import io.github.gaming32.spigotonfabric.impl.util.WorldUUID;
 import net.minecraft.resources.ResourceKey;
@@ -19,6 +20,8 @@ import net.minecraft.world.level.World;
 import net.minecraft.world.level.dimension.WorldDimension;
 import net.minecraft.world.level.storage.Convertable;
 import net.minecraft.world.level.storage.IWorldDataServer;
+import org.bukkit.entity.LightningStrike;
+import org.bukkit.event.weather.LightningStrikeEvent;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,6 +38,8 @@ import java.util.concurrent.Executor;
 @Mixin(WorldServer.class)
 public abstract class MixinWorldServer implements WorldServerExt {
     @Shadow public abstract ScoreboardServer getScoreboard();
+
+    @Shadow public abstract boolean addFreshEntity(Entity entity);
 
     @Unique
     private UUID sof$uuid;
@@ -62,6 +67,17 @@ public abstract class MixinWorldServer implements WorldServerExt {
     @Override
     public UUID sof$getUuid() {
         return sof$uuid;
+    }
+
+    @Override
+    public boolean sof$strikeLightning(Entity entityLightning, LightningStrikeEvent.Cause cause) {
+        final LightningStrikeEvent lightning = FabricEventFactory.callLightningStrikeEvent((LightningStrike)((EntityExt)entityLightning).sof$getBukkitEntity(), cause);
+
+        if (lightning.isCancelled()) {
+            return false;
+        }
+
+        return addFreshEntity(entityLightning);
     }
 
     @Mixin(targets = "net.minecraft.server.level.WorldServer$a")

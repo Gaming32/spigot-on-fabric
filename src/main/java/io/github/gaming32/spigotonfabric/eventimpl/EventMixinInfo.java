@@ -15,8 +15,4 @@ public @interface EventMixinInfo {
     PartialMode partialMode() default PartialMode.NO_PARTIAL_SUPPORT;
 
     EventEnableState defaultState() default EventEnableState.ON;
-
-    enum PartialMode {
-        FOR_PARTIAL, FOR_FULL, NO_PARTIAL_SUPPORT
-    }
 }

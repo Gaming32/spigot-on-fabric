@@ -2,8 +2,10 @@ package io.github.gaming32.spigotonfabric.mixin;
 
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.ext.EntityPlayerExt;
+import io.github.gaming32.spigotonfabric.ext.ICommandListenerExt;
 import io.github.gaming32.spigotonfabric.ext.MinecraftServerExt;
 import io.github.gaming32.spigotonfabric.impl.FabricServer;
+import net.minecraft.commands.CommandListenerWrapper;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.PacketPlayOutUpdateTime;
 import net.minecraft.resources.ResourceKey;
@@ -11,6 +13,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.level.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.event.server.ServerLoadEvent;
 import org.bukkit.plugin.PluginLoadOrder;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,8 +29,12 @@ import java.util.Collection;
 import java.util.function.BooleanSupplier;
 
 @Mixin(MinecraftServer.class)
-public abstract class MixinMinecraftServer implements MinecraftServerExt {
+public abstract class MixinMinecraftServer implements MinecraftServerExt, ICommandListenerExt {
     @Shadow private int tickCount;
+
+    @Unique
+    private ConsoleCommandSender sof$console;
+
     @Unique
     private boolean sof$hasStopped = false;
     @Unique
@@ -125,5 +133,20 @@ public abstract class MixinMinecraftServer implements MinecraftServerExt {
     )
     private void tickScheduler(BooleanSupplier hasTimeLeft, CallbackInfo ci) {
         SpigotOnFabric.getServer().getScheduler().mainThreadHeartbeat(tickCount);
+    }
+
+    @Override
+    public ConsoleCommandSender sof$getConsole() {
+        return sof$console;
+    }
+
+    @Override
+    public void sof$setConsole(ConsoleCommandSender console) {
+        this.sof$console = console;
+    }
+
+    @Override
+    public CommandSender sof$getBukkitSender(CommandListenerWrapper wrapper) {
+        return sof$console;
     }
 }

@@ -44,8 +44,7 @@ public final class FabricItemStack extends ItemStack {
 
     public static net.minecraft.world.item.ItemStack asNMSCopy(ItemStack original) {
         if (original instanceof FabricItemStack stack) {
-            SpigotOnFabric.notImplemented();
-            return null;
+            return stack.handle == null ? net.minecraft.world.item.ItemStack.EMPTY : stack.handle.copy();
         }
         if (original == null || original.getType() == Material.AIR) {
             return net.minecraft.world.item.ItemStack.EMPTY;
@@ -59,7 +58,7 @@ public final class FabricItemStack extends ItemStack {
 
         final var stack = new net.minecraft.world.item.ItemStack(item, original.getAmount());
         if (original.hasItemMeta()) {
-            SpigotOnFabric.notImplemented();
+            setItemMeta(stack, original.getItemMeta());
         }
         return stack;
     }
@@ -80,8 +79,7 @@ public final class FabricItemStack extends ItemStack {
     }
 
     public static FabricItemStack asFabricMirror(net.minecraft.world.item.ItemStack original) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return new FabricItemStack(original == null || original.isEmpty() ? null : original);
     }
 
     public static FabricItemStack asFabricCopy(ItemStack original) {

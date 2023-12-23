@@ -12,6 +12,7 @@ import io.github.gaming32.spigotonfabric.ext.WorldServerExt;
 import io.github.gaming32.spigotonfabric.impl.block.FabricBlock;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricEntity;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
+import io.github.gaming32.spigotonfabric.impl.inventory.FabricItemStack;
 import io.github.gaming32.spigotonfabric.impl.metadata.BlockMetadataStore;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataContainer;
 import io.github.gaming32.spigotonfabric.impl.persistence.FabricPersistentDataTypeRegistry;
@@ -40,6 +41,7 @@ import net.minecraft.util.ArraySetSorted;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.EntityLightning;
 import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.item.EntityItem;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.entity.projectile.EntityArrow;
 import net.minecraft.world.entity.raid.PersistentRaid;
@@ -59,6 +61,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.DragonBattle;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.event.world.TimeSkipEvent;
 import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.BlockPopulator;
@@ -419,8 +422,14 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         Preconditions.checkArgument(location != null, "Location cannot be null");
         Preconditions.checkArgument(item != null, "ItemStack cannot be null");
 
-        SpigotOnFabric.notImplemented();
-        return null;
+        final EntityItem entity = new EntityItem(world, location.getX(), location.getY(), location.getZ(), FabricItemStack.asNMSCopy(item));
+        final Item itemEntity = (Item)((EntityExt)entity).sof$getBukkitEntity();
+        entity.pickupDelay = 10;
+        if (function != null) {
+            function.accept(itemEntity);
+        }
+        world.addFreshEntity(entity /*, SpawnReason.CUSTOM */);
+        return itemEntity;
     }
 
     @NotNull
@@ -484,8 +493,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
     @NotNull
     @Override
     public LightningStrike strikeLightningEffect(@NotNull Location loc) {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return strikeLightning0(loc, true);
     }
 
     private LightningStrike strikeLightning0(Location loc, boolean isVisual) {
@@ -494,8 +502,8 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         final EntityLightning lightning = EntityTypes.LIGHTNING_BOLT.create(world);
         lightning.moveTo(loc.getX(), loc.getY(), loc.getZ());
         lightning.setVisualOnly(isVisual);
-        SpigotOnFabric.notImplemented();
-        return null;
+        ((WorldServerExt)world).sof$strikeLightning(lightning, LightningStrikeEvent.Cause.CUSTOM);
+        return (LightningStrike)((EntityExt)lightning).sof$getBukkitEntity();
     }
 
     @Override

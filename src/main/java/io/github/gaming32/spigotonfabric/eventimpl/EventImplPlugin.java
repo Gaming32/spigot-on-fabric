@@ -147,6 +147,12 @@ public class EventImplPlugin implements IMixinConfigPlugin {
     private static synchronized EventEnableState getEnableState(
         String eventName, PartialMode partialMode, EventEnableState defaultState
     ) {
+        boolean forceSave = false;
+        if (partialMode != PartialMode.NO_PARTIAL_SUPPORT) {
+            forceSave = SUPPORTS_PARTIAL.add(eventName);
+        } else if (SUPPORTS_PARTIAL.remove(eventName)) {
+            LOGGER.warn("Partial support was enabled for {}, then disabled?", eventName);
+        }
         final String baseValue = ENABLED_EVENTS.getProperty(eventName);
         if (baseValue != null) {
             EventEnableState state = null;
@@ -157,17 +163,15 @@ public class EventImplPlugin implements IMixinConfigPlugin {
             }
             if (state != null) {
                 if (partialMode != PartialMode.NO_PARTIAL_SUPPORT || state != EventEnableState.PARTIAL) {
+                    if (forceSave) {
+                        save();
+                    }
                     return state;
                 }
                 LOGGER.warn("Partial enablement is not supported for the event {}. Falling back to default ({}).", eventName, defaultState);
             }
         }
         ENABLED_EVENTS.put(eventName, defaultState.name().toLowerCase(Locale.ROOT));
-        if (partialMode != PartialMode.NO_PARTIAL_SUPPORT) {
-            SUPPORTS_PARTIAL.add(eventName);
-        } else {
-            SUPPORTS_PARTIAL.remove(eventName);
-        }
         save();
         return defaultState;
     }

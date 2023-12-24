@@ -1618,6 +1618,8 @@ public class FabricPlayer extends FabricHumanEntity implements Player {
         Preconditions.checkArgument(scoreboard != null, "Scoreboard cannot be null");
         Preconditions.checkState(getHandle().connection != null, "Cannot set scoreboard yet (invalid player connection)");
         Preconditions.checkState(!((ServerCommonPacketListenerImplExt)getHandle().connection).sof$isDisconnected(), "Cannot set scoreboard for invalid CraftPlayer (player is disconnected)");
+
+        throw SpigotOnFabric.notImplemented();
     }
 
     @Override

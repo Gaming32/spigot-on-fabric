@@ -1,4 +1,4 @@
-package io.github.gaming32.spigotonfabric.eventimpl.mixin.inventory.partial;
+package io.github.gaming32.spigotonfabric.eventimpl.mixin.inventory.both;
 
 import com.mojang.authlib.GameProfile;
 import io.github.gaming32.spigotonfabric.eventimpl.EventMixinInfo;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityPlayer.class)
-@EventMixinInfo(value = InventoryCloseEvent.class, partialMode = PartialMode.FOR_PARTIAL)
+@EventMixinInfo(value = InventoryCloseEvent.class, partialMode = PartialMode.FOR_BOTH)
 public abstract class InventoryCloseEventMixin extends EntityHuman {
     public InventoryCloseEventMixin(World level, BlockPosition pos, float yRot, GameProfile gameProfile) {
         super(level, pos, yRot, gameProfile);

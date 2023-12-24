@@ -1,9 +1,12 @@
 package io.github.gaming32.spigotonfabric.impl.event;
 
+import io.github.gaming32.spigotonfabric.SpigotOnFabric;
 import io.github.gaming32.spigotonfabric.eventimpl.EventImplPlugin;
 import io.github.gaming32.spigotonfabric.eventimpl.PartialMode;
+import io.github.gaming32.spigotonfabric.ext.ContainerExt;
 import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.ext.EntityLivingExt;
+import io.github.gaming32.spigotonfabric.impl.entity.FabricHumanEntity;
 import io.github.gaming32.spigotonfabric.impl.entity.FabricPlayer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.player.EntityHuman;
@@ -12,7 +15,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -40,7 +45,11 @@ public class FabricEventFactory {
     }
 
     public static void handleInventoryCloseEvent(EntityHuman human) {
-        // TODO: Implement
+        final InventoryView bukkitView = ((ContainerExt)human.containerMenu).sof$getBukkitView();
+        if (bukkitView == null) return;
+        final InventoryCloseEvent event = new InventoryCloseEvent(bukkitView);
+        SpigotOnFabric.getServer().getPluginManager().callEvent(event);
+        ((ContainerExt)human.containerMenu).sof$transferTo(human.inventoryMenu, (FabricHumanEntity)((EntityExt)human).sof$getBukkitEntity());
     }
 
     public static LightningStrikeEvent callLightningStrikeEvent(LightningStrike entity, LightningStrikeEvent.Cause cause) {

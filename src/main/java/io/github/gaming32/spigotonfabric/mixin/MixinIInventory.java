@@ -1,6 +1,7 @@
 package io.github.gaming32.spigotonfabric.mixin;
 
 import io.github.gaming32.spigotonfabric.ext.IInventoryExt;
+import io.github.gaming32.spigotonfabric.impl.entity.FabricHumanEntity;
 import net.minecraft.world.IInventory;
 import net.minecraft.world.item.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
@@ -24,6 +25,14 @@ public interface MixinIInventory extends IInventoryExt {
             result.add(getItem(i));
         }
         return result;
+    }
+
+    @Override
+    default void sof$onOpen(FabricHumanEntity who) {
+    }
+
+    @Override
+    default void sof$onClose(FabricHumanEntity who) {
     }
 
     @Override

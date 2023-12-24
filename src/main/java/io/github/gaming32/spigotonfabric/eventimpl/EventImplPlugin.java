@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -37,12 +38,10 @@ public class EventImplPlugin implements IMixinConfigPlugin {
         
         These toggles don't apply to events that are fired purely through API, such as Player.teleport triggering a PlayerTeleportEvent.
         
-        Here's a list of every event that supports partial enablement:
-          - PlayerDeathEvent
-          - InventoryCloseEvent
-        """;
+        Here's a list of every event that supports partial enablement:""";
 
     private static final Properties ENABLED_EVENTS = new Properties();
+    private static final Set<String> SUPPORTS_PARTIAL = new HashSet<>();
 
     private static Path enabledEventsPath;
 
@@ -164,15 +163,26 @@ public class EventImplPlugin implements IMixinConfigPlugin {
             }
         }
         ENABLED_EVENTS.put(eventName, defaultState.name().toLowerCase(Locale.ROOT));
+        if (partialMode != PartialMode.NO_PARTIAL_SUPPORT) {
+            SUPPORTS_PARTIAL.add(eventName);
+        } else {
+            SUPPORTS_PARTIAL.remove(eventName);
+        }
         save();
         return defaultState;
     }
 
     private static synchronized void save() {
+        final StringBuilder comments = new StringBuilder(COMMENTS);
+        for (final String event : SUPPORTS_PARTIAL) {
+            comments.append("\n  - ").append(event);
+        }
+        comments.append('\n');
+
         try {
             Files.createDirectories(enabledEventsPath.getParent());
             try (OutputStream os = Files.newOutputStream(enabledEventsPath)) {
-                ENABLED_EVENTS.store(os, COMMENTS);
+                ENABLED_EVENTS.store(os, comments.toString());
             }
         } catch (IOException e) {
             LOGGER.error("Failed to save {}", enabledEventsPath, e);

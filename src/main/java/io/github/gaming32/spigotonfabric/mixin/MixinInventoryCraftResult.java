@@ -1,6 +1,7 @@
 package io.github.gaming32.spigotonfabric.mixin;
 
 import io.github.gaming32.spigotonfabric.ext.IInventoryExt;
+import io.github.gaming32.spigotonfabric.impl.entity.FabricHumanEntity;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.inventory.InventoryCraftResult;
 import net.minecraft.world.item.ItemStack;
@@ -23,5 +24,13 @@ public class MixinInventoryCraftResult implements IInventoryExt {
     @Override
     public InventoryHolder sof$getOwner() {
         return null;
+    }
+
+    @Override
+    public void sof$onOpen(FabricHumanEntity who) {
+    }
+
+    @Override
+    public void sof$onClose(FabricHumanEntity who) {
     }
 }

@@ -6,6 +6,7 @@
   "mixins": [
     "MixinAdvancementHolder",
     "MixinChiseledBookShelfBlockEntity",
+    "MixinChunkMapDistance",
     "MixinChunkProviderServer",
     "MixinCommandDispatcher",
     "MixinCommandListenerWrapper",

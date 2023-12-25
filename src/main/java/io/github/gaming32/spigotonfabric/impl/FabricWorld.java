@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.github.gaming32.spigotonfabric.SOFTicketTypes;
 import io.github.gaming32.spigotonfabric.SpigotOnFabric;
+import io.github.gaming32.spigotonfabric.ext.ChunkMapDistanceExt;
 import io.github.gaming32.spigotonfabric.ext.ChunkProviderServerExt;
 import io.github.gaming32.spigotonfabric.ext.EntityExt;
 import io.github.gaming32.spigotonfabric.ext.EntityPlayerExt;
@@ -345,7 +346,7 @@ public class FabricWorld extends FabricRegionAccessor implements World {
         Preconditions.checkNotNull(plugin, "null plugin");
 
         final ChunkMapDistance chunkDistanceManager = this.world.getChunkSource().chunkMap.getDistanceManager();
-        SpigotOnFabric.notImplemented();
+        ((ChunkMapDistanceExt)chunkDistanceManager).sof$removeAllTicketsFor(SOFTicketTypes.PLUGIN_TICKET, 31, plugin);
     }
 
     @NotNull

@@ -78,6 +78,7 @@ import org.bukkit.plugin.PluginLoadOrder;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.SimplePluginManager;
+import org.bukkit.plugin.SimpleServicesManager;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.plugin.messaging.StandardMessenger;
@@ -125,6 +126,7 @@ public class FabricServer implements Server {
         .getMetadata()
         .getVersion()
         .getFriendlyString();
+    private final ServicesManager servicesManager = new SimpleServicesManager();
     private final FabricScheduler scheduler = new FabricScheduler();
     private final FabricCommandMap commandMap = new FabricCommandMap(this);
     private final SimpleHelpMap helpMap = new SimpleHelpMap(this);
@@ -483,8 +485,7 @@ public class FabricServer implements Server {
     @NotNull
     @Override
     public ServicesManager getServicesManager() {
-        SpigotOnFabric.notImplemented();
-        return null;
+        return servicesManager;
     }
 
     @NotNull

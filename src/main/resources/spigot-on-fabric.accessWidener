@@ -194,3 +194,5 @@ accessible	field	net/minecraft/world/entity/projectile/EntityFishingHook	current
 accessible	class	net/minecraft/world/entity/projectile/EntityFishingHook$HookState
 accessible	field	net/minecraft/world/entity/animal/goat/Goat	DATA_HAS_LEFT_HORN	Lnet/minecraft/network/syncher/DataWatcherObject;
 accessible	field	net/minecraft/world/entity/animal/goat/Goat	DATA_HAS_RIGHT_HORN	Lnet/minecraft/network/syncher/DataWatcherObject;
+accessible	method	net/minecraft/server/level/Ticket	<init>	(Lnet/minecraft/server/level/TicketType;ILjava/lang/Object;)V
+accessible	class	net/minecraft/server/level/ChunkMapDistance$a

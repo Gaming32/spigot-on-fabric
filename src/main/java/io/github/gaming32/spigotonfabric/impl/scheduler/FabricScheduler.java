@@ -97,7 +97,7 @@ public class FabricScheduler implements BukkitScheduler {
      */
     private volatile FabricTask currentTask = null;
     private volatile int currentTick = -1;
-    private final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("Craft Scheduler Thread - %d").build());
+    private final Executor executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("Fabric Scheduler Thread - %d").build());
     private FabricAsyncDebugger debugHead = new FabricAsyncDebugger(-1, null, null) {
         @Override
         StringBuilder debugTo(StringBuilder string) {

@@ -33,8 +33,9 @@ public class MixinWorld implements WorldExt {
     @Inject(
         method = "<init>",
         at = @At(
+            // This is a few lines lower than CB, but that's ok (and necessary)
             value = "FIELD",
-            target = "Lnet/minecraft/world/level/World;levelData:Lnet/minecraft/world/level/storage/WorldDataMutable;",
+            target = "Lnet/minecraft/world/level/World;dimension:Lnet/minecraft/resources/ResourceKey;",
             opcode = Opcodes.PUTFIELD,
             shift = At.Shift.AFTER
         )
